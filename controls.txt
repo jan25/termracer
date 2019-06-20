@@ -1,0 +1,3 @@
+Ctrl+c Quit
+Ctrl+s New race
+Ctrl+e End race

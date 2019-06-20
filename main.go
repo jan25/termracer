@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"time"
 
 	"github.com/jroimartin/gocui"
 )
+
+var timer *time.Timer = time.NewTimer(time.Millisecond)
 
 func main() {
 	g, err := gocui.NewGui(gocui.OutputNormal)
@@ -71,18 +74,29 @@ func layout(g *gocui.Gui) error {
 	g.SetCurrentView("word")
 	g.Cursor = true
 
-	if _, err := g.SetView("stats",
+	if stats, err := g.SetView("stats",
 		topX+paraW+pad, topY,
 		topX+paraW+pad+statsW, topY+statsH); err != nil {
+
+		time := <-timer.C
+		fmt.Fprintf(stats, "%v", time)
 
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 	}
 
-	if _, err := g.SetView("controls",
+	if controls, err := g.SetView("controls",
 		topX+paraW+pad, topY+statsH+pad,
 		topX+paraW+pad+controlsW, topY+statsH+pad+controlsH); err != nil {
+
+		controls.Title = "Controls"
+
+		b, err := ioutil.ReadFile("controls.txt")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprintf(controls, "%s", b)
 
 		if err != gocui.ErrUnknownView {
 			return err

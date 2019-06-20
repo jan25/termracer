@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -34,23 +33,23 @@ func layout(g *gocui.Gui) error {
 	// maxX, maxY := g.Size()
 
 	paraW, paraH := 60, 8
-	wordW, wordH := 60, 3
+	wordW, wordH := 60, 2
 
 	statsW, statsH := 20, 6
-	controlsW, controlsH := 20, 5
+	controlsW, controlsH := 20, 4
 
 	topX, topY := 1, 1
 	pad := 1
 
-	if _, err := g.SetView("para", topX, topY, topX + paraW, topY + paraH); err != nil {
+	if _, err := g.SetView("para", topX, topY, topX+paraW, topY+paraH); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 	}
 
 	if _, err := g.SetView("word",
-		topX, topY + paraH + pad,
-		topX + wordW, topY + paraH + pad + wordH); err != nil {
+		topX, topY+paraH+pad,
+		topX+wordW, topY+paraH+pad+wordH); err != nil {
 
 		if err != gocui.ErrUnknownView {
 			return err
@@ -58,8 +57,8 @@ func layout(g *gocui.Gui) error {
 	}
 
 	if _, err := g.SetView("stats",
-		topX + paraW + pad, topY,
-		topX + paraW + pad + statsW, topY + statsH); err != nil {
+		topX+paraW+pad, topY,
+		topX+paraW+pad+statsW, topY+statsH); err != nil {
 
 		if err != gocui.ErrUnknownView {
 			return err
@@ -67,13 +66,13 @@ func layout(g *gocui.Gui) error {
 	}
 
 	if _, err := g.SetView("controls",
-		topX + paraW + pad, topY + statsH + pad,
-		topX + paraW + pad + controlsW, topY + statsH + pad + controlsH); err != nil {
+		topX+paraW+pad, topY+statsH+pad,
+		topX+paraW+pad+controlsW, topY+statsH+pad+controlsH); err != nil {
 
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 	}
-	
+
 	return nil
 }

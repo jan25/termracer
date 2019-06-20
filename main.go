@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
 
 	"github.com/jroimartin/gocui"
@@ -41,20 +43,33 @@ func layout(g *gocui.Gui) error {
 	topX, topY := 1, 1
 	pad := 1
 
-	if _, err := g.SetView("para", topX, topY, topX+paraW, topY+paraH); err != nil {
+	if para, err := g.SetView("para", topX, topY, topX+paraW, topY+paraH); err != nil {
+		b, err := ioutil.ReadFile("sample_paragraph.txt")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprintf(para, "%s", b)
+
+		para.Wrap = true
+
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 	}
 
-	if _, err := g.SetView("word",
+	if word, err := g.SetView("word",
 		topX, topY+paraH+pad,
 		topX+wordW, topY+paraH+pad+wordH); err != nil {
 
+		word.Editable = true
+
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 	}
+
+	g.SetCurrentView("word")
+	g.Cursor = true
 
 	if _, err := g.SetView("stats",
 		topX+paraW+pad, topY,

@@ -2,3 +2,6 @@
 
 # binary from go build
 termracer
+
+# local samples
+examples

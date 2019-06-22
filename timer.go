@@ -14,9 +14,9 @@ type Timer struct {
 }
 
 // TimeFormatted wraps time.Duration converted to
-// seconds:centiseconds format
+// mins:seconds format
 type TimeFormatted struct {
-	Seconds, CentiSeconds int
+	Mins, Secs int
 }
 
 // NewTimer creates and returns new timer instance
@@ -47,11 +47,13 @@ func (t *Timer) ElapsedTime() (*TimeFormatted, error) {
 
 	ms := elapsed / time.Millisecond
 	secs := ms / 1000
-	csecs := (ms / 10) % 100
+	mins := secs / 60
+
+	secs = secs % 60
 
 	tf := TimeFormatted{
-		Seconds:      int(secs),
-		CentiSeconds: int(csecs),
+		Mins: int(mins),
+		Secs: int(secs),
 	}
 	return &tf, nil
 }

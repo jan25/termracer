@@ -4,12 +4,25 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/jroimartin/gocui"
+	"go.uber.org/zap"
+)
+
+var (
+	logger zap.Logger
+)
+
+var (
+	done = make(chan struct{})
+	wg   sync.WaitGroup
 )
 
 func main() {
+	logger, _ := zap.NewProduction()
+
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln(err)
@@ -22,14 +35,19 @@ func main() {
 		log.Panicln(err)
 	}
 
+	wg.Add(1)
+	go updateTimer(g)
+
+	logger.Info("started gui..")
+	defer logger.Sync()
+
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
-
-	go updateTimer(g)
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
+	close(done)
 	return gocui.ErrQuit
 }
 
@@ -73,9 +91,11 @@ func layout(g *gocui.Gui) error {
 	g.SetCurrentView("word")
 	g.Cursor = true
 
-	if _, err := g.SetView("stats",
+	if stats, err := g.SetView("stats",
 		topX+paraW+pad, topY,
 		topX+paraW+pad+statsW, topY+statsH); err != nil {
+
+		fmt.Fprintf(stats, "%02d:%02d", 10, 1)
 
 		if err != gocui.ErrUnknownView {
 			return err
@@ -103,16 +123,27 @@ func layout(g *gocui.Gui) error {
 }
 
 func updateTimer(g *gocui.Gui) {
+	defer wg.Done()
+
 	timer := NewTimer()
 	timer.Start()
-	v, _ := g.View("stats")
 
 	ticker := time.NewTicker(10 * time.Millisecond)
 	for {
 		select {
+		case <-done:
+			return
 		case <-ticker.C:
-			elapsed, _ := timer.ElapsedTime()
-			fmt.Fprintf(v, "%02d:%02d", elapsed.Seconds, elapsed.CentiSeconds)
+			g.Update(func(g *gocui.Gui) error {
+				v, err := g.View("stats")
+				if err != nil {
+					return err
+				}
+				v.Clear()
+				elapsed, _ := timer.ElapsedTime()
+				fmt.Fprintf(v, "%02d:%02d", elapsed.Mins, elapsed.Secs)
+				return nil
+			})
 		}
 	}
 }

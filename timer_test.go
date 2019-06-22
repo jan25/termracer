@@ -18,10 +18,8 @@ func TestTimer(t *testing.T) {
 		t.Fatal("error getting elapsed time")
 	}
 
-	assert.True(t, elapsed.Seconds == 1,
+	assert.True(t, elapsed.Secs == 1,
 		fmt.Sprintf("timer has incorrect elapsed secs %v", elapsed))
-	assert.True(t, elapsed.CentiSeconds >= 20,
-		fmt.Sprintf("timer has incorrect elapsed centisecs %v", elapsed))
 
 	timer.Stop()
 	elapsed, err = timer.ElapsedTime()

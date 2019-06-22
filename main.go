@@ -128,7 +128,7 @@ func updateTimer(g *gocui.Gui) {
 	timer := NewTimer()
 	timer.Start()
 
-	ticker := time.NewTicker(10 * time.Millisecond)
+	ticker := time.NewTicker(time.Second)
 	for {
 		select {
 		case <-done:

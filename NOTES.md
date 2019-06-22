@@ -56,3 +56,4 @@
 TODO
 - need module to strip new lines in paragraph files
 - need to arrange words properly in para view. algorithm to adjust spacing? just look for library
+- setup github CI (maybe CircleCI)

@@ -9,8 +9,6 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-var timer *time.Timer = time.NewTimer(time.Millisecond)
-
 func main() {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
@@ -28,6 +26,7 @@ func main() {
 		log.Panicln(err)
 	}
 
+	go updateTimer(g)
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
@@ -74,12 +73,9 @@ func layout(g *gocui.Gui) error {
 	g.SetCurrentView("word")
 	g.Cursor = true
 
-	if stats, err := g.SetView("stats",
+	if _, err := g.SetView("stats",
 		topX+paraW+pad, topY,
 		topX+paraW+pad+statsW, topY+statsH); err != nil {
-
-		time := <-timer.C
-		fmt.Fprintf(stats, "%v", time)
 
 		if err != gocui.ErrUnknownView {
 			return err
@@ -104,4 +100,19 @@ func layout(g *gocui.Gui) error {
 	}
 
 	return nil
+}
+
+func updateTimer(g *gocui.Gui) {
+	timer := NewTimer()
+	timer.Start()
+	v, _ := g.View("stats")
+
+	ticker := time.NewTicker(10 * time.Millisecond)
+	for {
+		select {
+		case <-ticker.C:
+			elapsed, _ := timer.ElapsedTime()
+			fmt.Fprintf(v, "%02d:%02d", elapsed.Seconds, elapsed.CentiSeconds)
+		}
+	}
 }

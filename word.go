@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 
-	"github.com/jroimartin/gocui"
+	"github.com/jan25/gocui"
 )
 
 const MAX_WORD_LEN int = 15
@@ -19,9 +19,9 @@ func wordEditorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
-		v.EditDelete(true)
+		handleDelete(v, true)
 	case key == gocui.KeyDelete:
-		v.EditDelete(false)
+		handleDelete(v, false)
 	case len(word) > MAX_WORD_LEN:
 		// do not add anymore runes
 		// can only delete from here
@@ -32,9 +32,17 @@ func wordEditorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	}
 }
 
+func handleDelete(v *gocui.View, back bool) {
+	v.EditDelete(back)
+	checkAndHighlight(v)
+}
+
 func handleChar(v *gocui.View, ch rune) {
 	v.EditWrite(ch)
+	checkAndHighlight(v)
+}
 
+func checkAndHighlight(v *gocui.View) {
 	w := strings.TrimSpace(getCurrentWord(v))
 	ok := strings.HasPrefix(TEST_WORD, w)
 	highlight(ok, v)

@@ -7,12 +7,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jroimartin/gocui"
+	"github.com/jan25/gocui"
 	"go.uber.org/zap"
 )
 
 var (
-	logger zap.Logger
+	logger    zap.Logger
+	paragraph *Paragraph
 )
 
 var (
@@ -68,9 +69,9 @@ func layout(g *gocui.Gui) error {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Fprintf(para, "%s", b)
 
-		para.Wrap = true
+		paragraph = newParagraph(string(b), para)
+		paragraph.DrawView()
 
 		if err != gocui.ErrUnknownView {
 			return err
@@ -138,6 +139,12 @@ func updateTimer(g *gocui.Gui) {
 			return
 		case <-ticker.C:
 			g.Update(func(g *gocui.Gui) error {
+				perr := paragraph.Advance()
+				if perr != nil {
+					paragraph.Reset()
+				}
+				paragraph.DrawView()
+
 				v, err := g.View("stats")
 				if err != nil {
 					return err

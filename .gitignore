@@ -1,7 +1,8 @@
 .vscode
 
-# binary from go build
+# binaries from go build
 termracer
+build
 
 # local samples
 examples

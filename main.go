@@ -81,7 +81,10 @@ func layout(g *gocui.Gui) error {
 		topX, topY+paraH+pad,
 		topX+wordW, topY+paraH+pad+wordH); err != nil {
 
+		word.Editor = WordEditor
 		word.Editable = true
+		word.SelBgColor = gocui.ColorRed
+		word.SelFgColor = gocui.ColorCyan
 
 		if err != gocui.ErrUnknownView {
 			return err

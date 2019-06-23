@@ -1,0 +1,61 @@
+package main
+
+import (
+	"strings"
+
+	"github.com/jroimartin/gocui"
+)
+
+const MAX_WORD_LEN int = 15
+
+// for developerment
+// remove when this module is fully developed
+const TEST_WORD string = "testword"
+
+var WordEditor gocui.Editor = gocui.EditorFunc(wordEditorFunc)
+
+func wordEditorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	word := strings.TrimSpace(getCurrentWord(v))
+
+	switch {
+	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
+		v.EditDelete(true)
+	case key == gocui.KeyDelete:
+		v.EditDelete(false)
+	case len(word) > MAX_WORD_LEN:
+		// do not add anymore runes
+		// can only delete from here
+	case ch != 0 && mod == 0:
+		handleChar(v, ch)
+	case key == gocui.KeySpace:
+		handleSpace(v)
+	}
+}
+
+func handleChar(v *gocui.View, ch rune) {
+	v.EditWrite(ch)
+
+	w := strings.TrimSpace(getCurrentWord(v))
+	ok := strings.HasPrefix(TEST_WORD, w)
+	highlight(ok, v)
+}
+
+func handleSpace(v *gocui.View) {
+	w := strings.TrimSpace(getCurrentWord(v))
+	if w == TEST_WORD {
+		v.Clear()
+		v.SetCursor(v.Origin())
+	} else {
+		highlight(false, v)
+		v.EditWrite(' ')
+	}
+}
+
+func highlight(ok bool, v *gocui.View) {
+	v.Highlight = !ok
+}
+
+func getCurrentWord(v *gocui.View) string {
+	line := v.Buffer()
+	return line
+}

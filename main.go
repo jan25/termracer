@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/jan25/gocui"
-	"go.uber.org/zap"
+	// "go.uber.org/zap"
 )
 
 var (
-	logger    zap.Logger
+	// logger    zap.Logger
 	paragraph *Paragraph
 )
 
@@ -22,7 +22,7 @@ var (
 )
 
 func main() {
-	logger, _ := zap.NewProduction()
+	// logger, _ := zap.NewProduction()
 
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
@@ -39,8 +39,8 @@ func main() {
 	wg.Add(1)
 	go updateTimer(g)
 
-	logger.Info("started gui..")
-	defer logger.Sync()
+	// logger.Info("started gui..")
+	// defer logger.Sync()
 
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
@@ -65,7 +65,7 @@ func layout(g *gocui.Gui) error {
 	pad := 1
 
 	if para, err := g.SetView("para", topX, topY, topX+paraW, topY+paraH); err != nil {
-		b, err := ioutil.ReadFile("sample_paragraph.txt")
+		b, err := ioutil.ReadFile("samples/sample_paragraph.txt")
 		if err != nil {
 			panic(err)
 		}
@@ -132,19 +132,13 @@ func updateTimer(g *gocui.Gui) {
 	timer := NewTimer()
 	timer.Start()
 
-	ticker := time.NewTicker(10 * time.Millisecond)
+	ticker := time.NewTicker(time.Second)
 	for {
 		select {
 		case <-done:
 			return
 		case <-ticker.C:
 			g.Update(func(g *gocui.Gui) error {
-				perr := paragraph.Advance()
-				if perr != nil {
-					paragraph.Reset()
-				}
-				paragraph.DrawView()
-
 				v, err := g.View("stats")
 				if err != nil {
 					return err

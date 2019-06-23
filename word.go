@@ -44,15 +44,21 @@ func handleChar(v *gocui.View, ch rune) {
 
 func checkAndHighlight(v *gocui.View) {
 	w := strings.TrimSpace(getCurrentWord(v))
-	ok := strings.HasPrefix(TEST_WORD, w)
+	ok := strings.HasPrefix(paragraph.CurrentWord(), w)
 	highlight(ok, v)
 }
 
 func handleSpace(v *gocui.View) {
 	w := strings.TrimSpace(getCurrentWord(v))
-	if w == TEST_WORD {
+	if w == paragraph.CurrentWord() {
 		v.Clear()
 		v.SetCursor(v.Origin())
+
+		perr := paragraph.Advance()
+		if perr != nil {
+			paragraph.Reset()
+		}
+		paragraph.DrawView()
 	} else {
 		highlight(false, v)
 		v.EditWrite(' ')

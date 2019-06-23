@@ -34,12 +34,16 @@ func newParagraph(paragraph string, view *gocui.View) *Paragraph {
 }
 
 func (p *Paragraph) Advance() error {
-	if p.currentw >= len(p.words) {
+	if p.currentw >= len(p.words)-1 {
 		return errors.New("can not advance beyond number of words")
 	}
 
 	p.currentw += 1
 	return nil
+}
+
+func (p *Paragraph) CurrentWord() string {
+	return p.words[p.currentw]
 }
 
 func (p *Paragraph) DrawView() {

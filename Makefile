@@ -1,6 +1,8 @@
 
-build:
-	go build -o build/termracer
+run: build exec
 
-run: build
-	./build/termracer
+build:
+	go build -o termracer
+
+exec:
+	./termracer

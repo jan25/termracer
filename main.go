@@ -9,6 +9,10 @@ import (
 	// "go.uber.org/zap"
 )
 
+const (
+	STATS_VIEW = "stats"
+)
+
 var (
 	// logger    zap.Logger
 	g         *gocui.Gui
@@ -111,7 +115,7 @@ func layout(g *gocui.Gui) error {
 	g.SetCurrentView("word")
 	g.Cursor = true
 
-	if stats, err := g.SetView("stats",
+	if stats, err := g.SetView(STATS_VIEW,
 		topX+paraW+pad, topY,
 		topX+paraW+pad+statsW, topY+statsH); err != nil {
 

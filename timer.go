@@ -18,8 +18,7 @@ type Timer struct {
 	// Keeps track of state of timer
 	active bool
 	done   chan struct{}
-
-	wg sync.WaitGroup
+	wg     sync.WaitGroup
 }
 
 // TimeFormatted wraps time.Duration converted to
@@ -108,7 +107,7 @@ func (t *Timer) updateTimer(g *gocui.Gui) {
 			return
 		case <-ticker.C:
 			g.Update(func(g *gocui.Gui) error {
-				v, err := g.View("stats")
+				v, err := g.View(STATS_VIEW)
 				if err != nil {
 					return err
 				}

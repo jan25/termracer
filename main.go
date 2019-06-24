@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"sync"
-	"time"
 
 	"github.com/jan25/gocui"
 	// "go.uber.org/zap"
@@ -13,22 +11,22 @@ import (
 
 var (
 	// logger    zap.Logger
+	g         *gocui.Gui
 	paragraph *Paragraph
-)
-
-var (
-	done = make(chan struct{})
-	wg   sync.WaitGroup
+	timer     *Timer
 )
 
 func main() {
 	// logger, _ := zap.NewProduction()
 
-	g, err := gocui.NewGui(gocui.OutputNormal)
+	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln(err)
 	}
+	g = gui
 	defer g.Close()
+
+	timer = NewTimer()
 
 	g.SetManagerFunc(layout)
 
@@ -36,8 +34,13 @@ func main() {
 		log.Panicln(err)
 	}
 
-	wg.Add(1)
-	go updateTimer(g)
+	if err := g.SetKeybinding("", gocui.KeyCtrlS, gocui.ModNone, ctrlS); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("", gocui.KeyCtrlE, gocui.ModNone, ctrlE); err != nil {
+		log.Panicln(err)
+	}
 
 	// logger.Info("started gui..")
 	// defer logger.Sync()
@@ -47,8 +50,21 @@ func main() {
 	}
 }
 
+func ctrlS(g *gocui.Gui, v *gocui.View) error {
+	timer.Start()
+
+	return nil
+}
+
+func ctrlE(g *gocui.Gui, v *gocui.View) error {
+	timer.Stop()
+
+	return nil
+}
+
 func quit(g *gocui.Gui, v *gocui.View) error {
-	close(done)
+	timer.Stop()
+
 	return gocui.ErrQuit
 }
 
@@ -124,30 +140,4 @@ func layout(g *gocui.Gui) error {
 	}
 
 	return nil
-}
-
-func updateTimer(g *gocui.Gui) {
-	defer wg.Done()
-
-	timer := NewTimer()
-	timer.Start()
-
-	ticker := time.NewTicker(time.Second)
-	for {
-		select {
-		case <-done:
-			return
-		case <-ticker.C:
-			g.Update(func(g *gocui.Gui) error {
-				v, err := g.View("stats")
-				if err != nil {
-					return err
-				}
-				v.Clear()
-				elapsed, _ := timer.ElapsedTime()
-				fmt.Fprintf(v, "%02d:%02d", elapsed.Mins, elapsed.Secs)
-				return nil
-			})
-		}
-	}
 }

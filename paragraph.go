@@ -15,7 +15,7 @@ type Paragraph struct {
 	words []string
 
 	// index of current word being typed
-	currentw int
+	wordi int
 
 	// instance of view to display paragraph
 	view *gocui.View
@@ -27,23 +27,23 @@ func newParagraph(paragraph string, view *gocui.View) *Paragraph {
 
 	view.Wrap = true
 	return &Paragraph{
-		words:    words,
-		currentw: 0,
-		view:     view,
+		words: words,
+		wordi: 0,
+		view:  view,
 	}
 }
 
 func (p *Paragraph) Advance() error {
-	if p.currentw >= len(p.words)-1 {
+	if p.wordi >= len(p.words)-1 {
 		return errors.New("can not advance beyond number of words")
 	}
 
-	p.currentw += 1
+	p.wordi += 1
 	return nil
 }
 
-func (p *Paragraph) CurrentWord() string {
-	return p.words[p.currentw]
+func (p *Paragraph) wordiord() string {
+	return p.words[p.wordi]
 }
 
 func (p *Paragraph) DrawView() {
@@ -51,7 +51,7 @@ func (p *Paragraph) DrawView() {
 
 	for i, w := range p.words {
 		underline := false
-		if i == p.currentw {
+		if i == p.wordi {
 			underline = true
 		}
 
@@ -70,5 +70,5 @@ func (p *Paragraph) printWord(w string, underline bool) {
 // for development purpose
 // remove once this module is fairly integrated
 func (p *Paragraph) Reset() {
-	p.currentw = 0
+	p.wordi = 0
 }

@@ -42,7 +42,7 @@ func (p *Paragraph) Advance() error {
 	return nil
 }
 
-func (p *Paragraph) wordiord() string {
+func (p *Paragraph) CurrentWord() string {
 	return p.words[p.wordi]
 }
 

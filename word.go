@@ -67,6 +67,12 @@ func handleSpace(v *gocui.View) {
 
 func highlight(ok bool, v *gocui.View) {
 	v.Highlight = !ok
+
+	// if !ok {
+	// 	v.BgColor = gocui.Attribute.ColorRed
+	// } else {
+	// 	v.BgColor = gocui.Attribute.ColorDefault
+	// }
 }
 
 func getCurrentWord(v *gocui.View) string {

@@ -62,7 +62,7 @@ func (p *Paragraph) DrawView() {
 func (p *Paragraph) printWord(w string, underline bool) {
 	f := "%s "
 	if underline {
-		f = "\033[0;4m%s\033[0m "
+		f = "\033[0;7m%s\033[0m "
 	}
 	fmt.Fprintf(p.view, f, w)
 }

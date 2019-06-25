@@ -48,13 +48,20 @@ func (t *Timer) Start() error {
 	return nil
 }
 
+func (t *Timer) getDoneCh() chan struct{} {
+	if t.done == nil {
+		t.done = make(chan struct{})
+	}
+	return t.done
+}
+
 // Stop stops the timer
 func (t *Timer) Stop() error {
 	t.start = time.Now()
 	t.active = false
 
 	select {
-	case <-t.done:
+	case <-t.getDoneCh():
 		// channel already closed
 		return errors.New("timer already stopped")
 	default:
@@ -103,7 +110,7 @@ func (t *Timer) updateTimer(g *gocui.Gui) {
 
 	for {
 		select {
-		case <-t.done:
+		case <-t.getDoneCh():
 			return
 		case <-ticker.C:
 			g.Update(func(g *gocui.Gui) error {

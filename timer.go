@@ -71,6 +71,11 @@ func (t *Timer) Stop() error {
 	return nil
 }
 
+// IsActive returns true if timer is active
+func (t *Timer) IsActive() bool {
+	return t.active
+}
+
 // ElapsedTime is time the timer has been active for
 // returns error if timer is not active
 func (t *Timer) ElapsedTime() (*TimeFormatted, error) {

@@ -18,7 +18,7 @@ var (
 	g         *gocui.Gui
 	paragraph *Paragraph
 	word      *Word
-	timer     *Timer
+	stats     *Stats
 )
 
 var (
@@ -40,13 +40,13 @@ func main() {
 	g = gui
 	defer g.Close()
 
-	timer = NewTimer()
+	// timer = NewTimer()
 
 	paragraph = newParagraph(PARA_VIEW, topX, topY, paraW, paraH)
 	word = newWord(WORD_VIEW, topX, topY+paraH+pad, wordW, wordH)
+	stats = newStatsView(STATS_VIEW, topX+paraW+pad, topY, statsW, statsH)
 
-	g.SetManager(paragraph, word)
-	// g.SetManagerFunc(layout)
+	g.SetManager(paragraph, word, stats)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
@@ -66,9 +66,9 @@ func main() {
 }
 
 func ctrlS(g *gocui.Gui, v *gocui.View) error {
-	// timer.Start()
 	paragraph.Init()
 	word.Init()
+	stats.StartTimer()
 
 	g.SetCurrentView(WORD_VIEW)
 	g.Cursor = true
@@ -77,9 +77,10 @@ func ctrlS(g *gocui.Gui, v *gocui.View) error {
 }
 
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
-	// timer.Stop()
 	paragraph.Reset()
 	word.Reset()
+	stats.StopTimer()
+
 	g.Cursor = false
 
 	return nil
@@ -93,17 +94,6 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 
 func layout(g *gocui.Gui) error {
 	// maxX, maxY := g.Size()
-
-	if stats, err := g.SetView(STATS_VIEW,
-		topX+paraW+pad, topY,
-		topX+paraW+pad+statsW, topY+statsH); err != nil {
-
-		fmt.Fprintf(stats, "%02d:%02d", 10, 1)
-
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-	}
 
 	if controls, err := g.SetView("controls",
 		topX+paraW+pad, topY+statsH+pad,

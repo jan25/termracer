@@ -44,7 +44,7 @@ func (w *Word) Layout(g *gocui.Gui) error {
 	select {
 	case <-w.done:
 		// channel closed
-		v.Clear()
+		clearEditor(v)
 	default:
 		w.init(v)
 	}
@@ -109,19 +109,22 @@ func checkAndHighlight(v *gocui.View) {
 func handleSpace(v *gocui.View) {
 	w := strings.TrimSpace(getCurrentWord(v))
 	if w == paragraph.CurrentWord() {
-		v.Clear()
-		v.SetCursor(v.Origin())
+		clearEditor(v)
 
 		perr := paragraph.Advance()
 		if perr != nil {
 			paragraph.Reset()
 			word.Reset()
 		}
-		// paragraph.DrawView()
 	} else {
 		highlight(false, v)
 		v.EditWrite(' ')
 	}
+}
+
+func clearEditor(v *gocui.View) {
+	v.Clear()
+	v.SetCursor(v.Origin())
 }
 
 func highlight(ok bool, v *gocui.View) {

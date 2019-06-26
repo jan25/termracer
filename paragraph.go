@@ -103,9 +103,3 @@ func (p *Paragraph) printWord(v *gocui.View, w string, underline bool) {
 func (p *Paragraph) Reset() {
 	close(p.done)
 }
-
-// for development purpose
-// remove once this module is fairly integrated
-// func (p *Paragraph) Reset() {
-// 	p.wordi = 0
-// }

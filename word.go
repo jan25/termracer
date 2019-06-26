@@ -6,12 +6,10 @@ import (
 	"github.com/jan25/gocui"
 )
 
-const MAX_WORD_LEN int = 15
+const maxWordLen int = 15
 
-// for developerment
-// remove when this module is fully developed
-// const TEST_WORD string = "testword"
-
+// Word is a widget to type
+// a target word
 type Word struct {
 	// name of the View
 	name string
@@ -35,6 +33,7 @@ func newWord(name string, x, y int, w, h int) *Word {
 	}
 }
 
+// Layout is layout manager for word widget
 func (w *Word) Layout(g *gocui.Gui) error {
 	v, err := g.SetView(w.name, w.x, w.y, w.x+w.w, w.y+w.h)
 	if err != nil && err != gocui.ErrUnknownView {
@@ -51,10 +50,14 @@ func (w *Word) Layout(g *gocui.Gui) error {
 	return nil
 }
 
+// Init initialises the word View
+// This makes the widget editable
 func (w *Word) Init() {
 	w.done = make(chan struct{})
 }
 
+// Reset clears the widget
+// used when race is not active
 func (w *Word) Reset() {
 	close(w.done)
 }
@@ -80,7 +83,7 @@ func wordEditorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 		handleDelete(v, true)
 	case key == gocui.KeyDelete:
 		handleDelete(v, false)
-	case len(word) > MAX_WORD_LEN:
+	case len(word) > maxWordLen:
 		// do not add anymore runes
 		// can only delete from here
 	case ch != 0 && mod == 0:
@@ -125,6 +128,7 @@ func handleSpace(v *gocui.View) {
 func clearEditor(v *gocui.View) {
 	v.Clear()
 	v.SetCursor(v.Origin())
+	v.Editable = false
 }
 
 func highlight(ok bool, v *gocui.View) {

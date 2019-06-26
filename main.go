@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	STATS_VIEW    = "stats"
-	PARA_VIEW     = "para"
-	WORD_VIEW     = "word"
-	CONTROLS_VIEW = "controls"
+	statsName    = "stats"
+	paraName     = "para"
+	wordName     = "word"
+	controlsName = "controls"
 )
 
 var (
@@ -39,10 +39,10 @@ func main() {
 	g = gui
 	defer g.Close()
 
-	paragraph = newParagraph(PARA_VIEW, topX, topY, paraW, paraH)
-	word = newWord(WORD_VIEW, topX, topY+paraH+pad, wordW, wordH)
-	stats = newStatsView(STATS_VIEW, topX+paraW+pad, topY, statsW, statsH)
-	controls := newControls(CONTROLS_VIEW, topX+paraW+pad, topY+statsH+pad, controlsW, controlsH)
+	paragraph = newParagraph(paraName, topX, topY, paraW, paraH)
+	word = newWord(wordName, topX, topY+paraH+pad, wordW, wordH)
+	stats = newStatsView(statsName, topX+paraW+pad, topY, statsW, statsH)
+	controls := newControls(controlsName, topX+paraW+pad, topY+statsH+pad, controlsW, controlsH)
 
 	g.SetManager(paragraph, word, stats, controls)
 
@@ -68,7 +68,7 @@ func ctrlS(g *gocui.Gui, v *gocui.View) error {
 	word.Init()
 	stats.StartTimer()
 
-	g.SetCurrentView(WORD_VIEW)
+	g.SetCurrentView(wordName)
 	g.Cursor = true
 
 	return nil

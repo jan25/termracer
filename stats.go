@@ -6,6 +6,8 @@ import (
 	"github.com/jan25/gocui"
 )
 
+// Stats is to keep track of
+// stats view
 type Stats struct {
 	// name of the view
 	name string
@@ -29,6 +31,7 @@ func newStatsView(name string, x, y int, w, h int) *Stats {
 	}
 }
 
+// Layout manager for stats view
 func (s *Stats) Layout(g *gocui.Gui) error {
 	v, err := g.SetView(s.name, s.x, s.y, s.x+s.w, s.y+s.h)
 	if err != nil && err != gocui.ErrUnknownView {
@@ -52,11 +55,13 @@ func (s *Stats) updateTime(v *gocui.View) error {
 	return nil
 }
 
+// StartTimer starts the timer
 func (s *Stats) StartTimer() error {
 	err := s.timer.Start()
 	return err
 }
 
+// StopTimer stops the timer
 func (s *Stats) StopTimer() error {
 	err := s.timer.Stop()
 	return err

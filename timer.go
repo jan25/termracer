@@ -119,7 +119,8 @@ func (t *Timer) updateTimer(g *gocui.Gui) {
 			return
 		case <-ticker.C:
 			g.Update(func(g *gocui.Gui) error {
-				v, err := g.View(STATS_VIEW)
+				// TODO remove hardcoded view name
+				v, err := g.View("stats")
 				if err != nil {
 					return err
 				}

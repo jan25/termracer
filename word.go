@@ -10,9 +10,67 @@ const MAX_WORD_LEN int = 15
 
 // for developerment
 // remove when this module is fully developed
-const TEST_WORD string = "testword"
+// const TEST_WORD string = "testword"
 
-var WordEditor gocui.Editor = gocui.EditorFunc(wordEditorFunc)
+type Word struct {
+	// name of the View
+	name string
+	// position, dimentions
+	x, y int
+	w, h int
+
+	// editor instance
+	e gocui.Editor
+	// keep track of status of view
+	done chan struct{}
+}
+
+func newWord(name string, x, y int, w, h int) *Word {
+	return &Word{
+		name: name,
+		x:    x,
+		y:    y,
+		w:    w,
+		h:    h,
+	}
+}
+
+func (w *Word) Layout(g *gocui.Gui) error {
+	v, err := g.SetView(w.name, w.x, w.y, w.x+w.w, w.y+w.h)
+	if err != nil && err != gocui.ErrUnknownView {
+		return err
+	}
+
+	select {
+	case <-w.done:
+		// channel closed
+		v.Clear()
+	default:
+		w.init(v)
+	}
+	return nil
+}
+
+func (w *Word) Init() {
+	w.done = make(chan struct{})
+}
+
+func (w *Word) Reset() {
+	close(w.done)
+}
+
+func (w *Word) init(v *gocui.View) {
+	w.e = newWordEditor()
+
+	v.Editor = newWordEditor()
+	v.Editable = true
+	v.SelBgColor = gocui.ColorRed
+	v.SelFgColor = gocui.ColorCyan
+}
+
+func newWordEditor() gocui.Editor {
+	return gocui.EditorFunc(wordEditorFunc)
+}
 
 func wordEditorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	word := strings.TrimSpace(getCurrentWord(v))
@@ -57,8 +115,9 @@ func handleSpace(v *gocui.View) {
 		perr := paragraph.Advance()
 		if perr != nil {
 			paragraph.Reset()
+			word.Reset()
 		}
-		paragraph.DrawView()
+		// paragraph.DrawView()
 	} else {
 		highlight(false, v)
 		v.EditWrite(' ')
@@ -67,12 +126,6 @@ func handleSpace(v *gocui.View) {
 
 func highlight(ok bool, v *gocui.View) {
 	v.Highlight = !ok
-
-	// if !ok {
-	// 	v.BgColor = gocui.Attribute.ColorRed
-	// } else {
-	// 	v.BgColor = gocui.Attribute.ColorDefault
-	// }
 }
 
 func getCurrentWord(v *gocui.View) string {

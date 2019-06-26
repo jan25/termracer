@@ -6,23 +6,33 @@ import (
 	"log"
 
 	"github.com/jan25/gocui"
-	// "go.uber.org/zap"
 )
 
 const (
 	STATS_VIEW = "stats"
+	PARA_VIEW  = "para"
+	WORD_VIEW  = "word"
 )
 
 var (
-	// logger    zap.Logger
 	g         *gocui.Gui
 	paragraph *Paragraph
+	word      *Word
 	timer     *Timer
 )
 
-func main() {
-	// logger, _ := zap.NewProduction()
+var (
+	paraW, paraH = 60, 8
+	wordW, wordH = 60, 2
 
+	statsW, statsH       = 20, 6
+	controlsW, controlsH = 20, 4
+
+	topX, topY = 1, 1
+	pad        = 1
+)
+
+func main() {
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln(err)
@@ -32,7 +42,11 @@ func main() {
 
 	timer = NewTimer()
 
-	g.SetManagerFunc(layout)
+	paragraph = newParagraph(PARA_VIEW, topX, topY, paraW, paraH)
+	word = newWord(WORD_VIEW, topX, topY+paraH+pad, wordW, wordH)
+
+	g.SetManager(paragraph, word)
+	// g.SetManagerFunc(layout)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
@@ -46,74 +60,39 @@ func main() {
 		log.Panicln(err)
 	}
 
-	// logger.Info("started gui..")
-	// defer logger.Sync()
-
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
 }
 
 func ctrlS(g *gocui.Gui, v *gocui.View) error {
-	timer.Start()
+	// timer.Start()
+	paragraph.Init()
+	word.Init()
+
+	g.SetCurrentView(WORD_VIEW)
+	g.Cursor = true
 
 	return nil
 }
 
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
-	timer.Stop()
+	// timer.Stop()
+	paragraph.Reset()
+	word.Reset()
+	g.Cursor = false
 
 	return nil
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
-	timer.Stop()
+	// timer.Stop()
 
 	return gocui.ErrQuit
 }
 
 func layout(g *gocui.Gui) error {
 	// maxX, maxY := g.Size()
-
-	paraW, paraH := 60, 8
-	wordW, wordH := 60, 2
-
-	statsW, statsH := 20, 6
-	controlsW, controlsH := 20, 4
-
-	topX, topY := 1, 1
-	pad := 1
-
-	if para, err := g.SetView("para", topX, topY, topX+paraW, topY+paraH); err != nil {
-		b, err := ioutil.ReadFile("samples/sample_paragraph.txt")
-		if err != nil {
-			panic(err)
-		}
-
-		paragraph = newParagraph(string(b), para)
-		paragraph.DrawView()
-
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-	}
-
-	if word, err := g.SetView("word",
-		topX, topY+paraH+pad,
-		topX+wordW, topY+paraH+pad+wordH); err != nil {
-
-		word.Editor = WordEditor
-		word.Editable = true
-		word.SelBgColor = gocui.ColorRed
-		word.SelFgColor = gocui.ColorCyan
-
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-	}
-
-	g.SetCurrentView("word")
-	g.Cursor = true
 
 	if stats, err := g.SetView(STATS_VIEW,
 		topX+paraW+pad, topY,

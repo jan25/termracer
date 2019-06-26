@@ -1,17 +1,16 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
 
 	"github.com/jan25/gocui"
 )
 
 const (
-	STATS_VIEW = "stats"
-	PARA_VIEW  = "para"
-	WORD_VIEW  = "word"
+	STATS_VIEW    = "stats"
+	PARA_VIEW     = "para"
+	WORD_VIEW     = "word"
+	CONTROLS_VIEW = "controls"
 )
 
 var (
@@ -45,8 +44,9 @@ func main() {
 	paragraph = newParagraph(PARA_VIEW, topX, topY, paraW, paraH)
 	word = newWord(WORD_VIEW, topX, topY+paraH+pad, wordW, wordH)
 	stats = newStatsView(STATS_VIEW, topX+paraW+pad, topY, statsW, statsH)
+	controls := newControls(CONTROLS_VIEW, topX+paraW+pad, topY+statsH+pad, controlsW, controlsH)
 
-	g.SetManager(paragraph, word, stats)
+	g.SetManager(paragraph, word, stats, controls)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
@@ -92,25 +92,25 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-func layout(g *gocui.Gui) error {
-	// maxX, maxY := g.Size()
+// func layout(g *gocui.Gui) error {
+// 	// maxX, maxY := g.Size()
 
-	if controls, err := g.SetView("controls",
-		topX+paraW+pad, topY+statsH+pad,
-		topX+paraW+pad+controlsW, topY+statsH+pad+controlsH); err != nil {
+// 	if controls, err := g.SetView("controls",
+// 		topX+paraW+pad, topY+statsH+pad,
+// 		topX+paraW+pad+controlsW, topY+statsH+pad+controlsH); err != nil {
 
-		controls.Title = "Controls"
+// 		controls.Title = "Controls"
 
-		b, err := ioutil.ReadFile("controls.txt")
-		if err != nil {
-			panic(err)
-		}
-		fmt.Fprintf(controls, "%s", b)
+// 		b, err := ioutil.ReadFile("controls.txt")
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		fmt.Fprintf(controls, "%s", b)
 
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-	}
+// 		if err != gocui.ErrUnknownView {
+// 			return err
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

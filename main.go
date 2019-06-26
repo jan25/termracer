@@ -39,8 +39,6 @@ func main() {
 	g = gui
 	defer g.Close()
 
-	// timer = NewTimer()
-
 	paragraph = newParagraph(PARA_VIEW, topX, topY, paraW, paraH)
 	word = newWord(WORD_VIEW, topX, topY+paraH+pad, wordW, wordH)
 	stats = newStatsView(STATS_VIEW, topX+paraW+pad, topY, statsW, statsH)
@@ -87,30 +85,5 @@ func ctrlE(g *gocui.Gui, v *gocui.View) error {
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
-	// timer.Stop()
-
 	return gocui.ErrQuit
 }
-
-// func layout(g *gocui.Gui) error {
-// 	// maxX, maxY := g.Size()
-
-// 	if controls, err := g.SetView("controls",
-// 		topX+paraW+pad, topY+statsH+pad,
-// 		topX+paraW+pad+controlsW, topY+statsH+pad+controlsH); err != nil {
-
-// 		controls.Title = "Controls"
-
-// 		b, err := ioutil.ReadFile("controls.txt")
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		fmt.Fprintf(controls, "%s", b)
-
-// 		if err != gocui.ErrUnknownView {
-// 			return err
-// 		}
-// 	}
-
-// 	return nil
-// }

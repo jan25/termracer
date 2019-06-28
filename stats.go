@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"text/tabwriter"
+
 	"github.com/jan25/gocui"
 )
 
@@ -80,12 +82,29 @@ func (s *StatsView) Layout(g *gocui.Gui) error {
 	}
 
 	if s.timer.IsActive() {
-		s.updateTime(v)
+		s.updateRaceStats(v)
+	} else {
+		s.showRecentRaceStats(v)
 	}
+
 	return nil
 }
 
-func (s *StatsView) updateTime(v *gocui.View) error {
+func (s *StatsView) showRecentRaceStats(v *gocui.View) {
+	v.Clear()
+
+	w := new(tabwriter.Writer)
+	w.Init(v, 0, 9, 0, '\t', 0)
+	fmt.Fprintln(w, "No. WPM ACCURACY")
+	for i := len(s.stats.History) - 1; i >= 0; i-- {
+		stat := s.stats.History[i]
+		fmt.Fprintln(w,
+			fmt.Sprintf("%d %d %.2f%%", (i+1), stat.Wpm, stat.Accuracy))
+	}
+	w.Flush()
+}
+
+func (s *StatsView) updateRaceStats(v *gocui.View) error {
 	elapsedTime, err := s.timer.ElapsedTime()
 	if err != nil {
 		return err
@@ -109,15 +128,15 @@ func (s *StatsView) updateTime(v *gocui.View) error {
 	return nil
 }
 
-// StartTimer starts the timer
-func (s *StatsView) StartTimer() error {
+// StartRace starts the timer
+func (s *StatsView) StartRace() error {
 	err := s.timer.Start()
 	s.stats.InitNewStat()
 	return err
 }
 
-// StopTimer stops the timer
-func (s *StatsView) StopTimer() error {
+// StopRace stops the timer
+func (s *StatsView) StopRace() error {
 	err := s.timer.Stop()
 	s.stats.FinishCurrent()
 	return err

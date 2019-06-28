@@ -123,8 +123,10 @@ func handleSpace(v *gocui.View) {
 
 		perr := paragraph.Advance()
 		if perr != nil {
+			// finished typing all words by this points
 			paragraph.Reset()
 			word.Reset()
+			stats.StopRace()
 		}
 	} else {
 		// TODO Should we count mistyped space as mistake?

@@ -79,7 +79,7 @@ func main() {
 func ctrlS(g *gocui.Gui, v *gocui.View) error {
 	paragraph.Init()
 	word.Init()
-	stats.StartTimer()
+	stats.StartRace()
 
 	g.SetCurrentView(wordName)
 	g.Cursor = true
@@ -90,7 +90,7 @@ func ctrlS(g *gocui.Gui, v *gocui.View) error {
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
 	paragraph.Reset()
 	word.Reset()
-	stats.StopTimer()
+	stats.StopRace()
 
 	g.Cursor = false
 

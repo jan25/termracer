@@ -63,7 +63,7 @@ func (p *Paragraph) Layout(g *gocui.Gui) error {
 func (p *Paragraph) Init() {
 	p.done = make(chan struct{})
 
-	b, _ := ioutil.ReadFile("samples/sample_paragraph.txt")
+	b, _ := ioutil.ReadFile("samples/sample_paragraph2.txt")
 	p.words = strings.Fields(string(b))
 	p.wordi = 0
 }

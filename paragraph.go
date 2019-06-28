@@ -93,7 +93,7 @@ func (p *Paragraph) CurrentWord() string {
 // upto/including current word
 func (p *Paragraph) CharsUptoCurrent() int {
 	c := 0
-	for i := 0; i < len(p.words); i++ {
+	for i := 0; i < p.wordi; i++ {
 		c += len(p.words[i])
 	}
 	return c

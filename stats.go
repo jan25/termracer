@@ -12,7 +12,7 @@ type OneStat struct {
 	// words per minute
 	Wpm int
 	// accuracy eg. 95.6%
-	Accuracy float32
+	Accuracy float64
 }
 
 // Stats is datastructure to
@@ -28,7 +28,7 @@ func (s *Stats) InitNewStat() {
 	if s.Current == nil {
 		s.Current = &OneStat{
 			Wpm:      0,
-			Accuracy: 100,
+			Accuracy: float64(100.00),
 		}
 	}
 	if s.History == nil {
@@ -93,17 +93,19 @@ func (s *StatsView) updateTime(v *gocui.View) error {
 
 	secs := elapsedTime.Mins*60 + elapsedTime.Secs
 	if secs != 0 {
-		s.stats.Current.Wpm = 60 * (paragraph.CountDoneWords() / secs)
+		s.stats.Current.Wpm = CalculateWpm(paragraph.CountDoneWords(), secs)
 	} else {
 		s.stats.Current.Wpm = 0
 	}
-	s.stats.Current.Accuracy = float32(word.Mistyped) * float32(100) / float32(paragraph.CharsUptoCurrent())
+	s.stats.Current.Accuracy = CalculateAccuracy(paragraph.CharsUptoCurrent(), word.Mistyped)
 
 	currentStat := s.stats.Current
 
 	v.Clear()
 	fmt.Fprintf(v, "%02d:%02d \n", elapsedTime.Mins, elapsedTime.Secs)
-	fmt.Fprintf(v, "WPM %d \nACCURACY %.2f%% \n", currentStat.Wpm, currentStat.Accuracy)
+	if currentStat != nil {
+		fmt.Fprintf(v, "WPM %d \nACCURACY %.2f%% \n", currentStat.Wpm, currentStat.Accuracy)
+	}
 	return nil
 }
 

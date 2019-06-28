@@ -40,6 +40,7 @@ func newParagraph(name string, x, y int, w, h int) *Paragraph {
 	}
 }
 
+// Layout manager for paragraph View
 func (p *Paragraph) Layout(g *gocui.Gui) error {
 	v, err := g.SetView(p.name, p.x, p.y, p.x+p.w, p.y+p.h)
 	if err != nil && err != gocui.ErrUnknownView {
@@ -48,7 +49,7 @@ func (p *Paragraph) Layout(g *gocui.Gui) error {
 	v.Wrap = true
 
 	select {
-	case <-p.done:
+	case <-p.getDoneCh():
 		// channel closed
 		v.Clear()
 	default:
@@ -58,6 +59,7 @@ func (p *Paragraph) Layout(g *gocui.Gui) error {
 	return nil
 }
 
+// Init initialises new paragraph to type
 func (p *Paragraph) Init() {
 	p.done = make(chan struct{})
 
@@ -66,19 +68,38 @@ func (p *Paragraph) Init() {
 	p.wordi = 0
 }
 
+// Advance moves target word to next word
 func (p *Paragraph) Advance() error {
 	if p.wordi >= len(p.words)-1 {
 		return errors.New("can not advance beyond number of words")
 	}
 
-	p.wordi += 1
+	p.wordi++
 	return nil
 }
 
+// CountDoneWords returns number of words
+// already types in current race
+func (p *Paragraph) CountDoneWords() int {
+	return p.wordi
+}
+
+// CurrentWord returns target word to type
 func (p *Paragraph) CurrentWord() string {
 	return p.words[p.wordi]
 }
 
+// CharsUptoCurrent counts chars in words
+// upto/including current word
+func (p *Paragraph) CharsUptoCurrent() int {
+	c := 0
+	for i := 0; i < p.wordi; i++ {
+		c += len(p.words[i])
+	}
+	return c
+}
+
+// DrawView renders the paragraph View
 func (p *Paragraph) DrawView(v *gocui.View) {
 	v.Clear()
 
@@ -100,6 +121,21 @@ func (p *Paragraph) printWord(v *gocui.View, w string, underline bool) {
 	fmt.Fprintf(v, f, w)
 }
 
+func (p *Paragraph) getDoneCh() chan struct{} {
+	if p.done == nil {
+		p.done = make(chan struct{})
+	}
+	return p.done
+}
+
+// Reset deactivates the paragraph view
+// used to stop a race
 func (p *Paragraph) Reset() {
-	close(p.done)
+	select {
+	case <-p.getDoneCh():
+		// already closed
+		// nothing to do
+	default:
+		close(p.getDoneCh())
+	}
 }

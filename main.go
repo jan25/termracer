@@ -4,20 +4,22 @@ import (
 	"log"
 
 	"github.com/jan25/gocui"
+	"go.uber.org/zap"
 )
 
 const (
-	STATS_VIEW    = "stats"
-	PARA_VIEW     = "para"
-	WORD_VIEW     = "word"
-	CONTROLS_VIEW = "controls"
+	statsName    = "stats"
+	paraName     = "para"
+	wordName     = "word"
+	controlsName = "controls"
 )
 
 var (
+	Logger    *zap.Logger
 	g         *gocui.Gui
 	paragraph *Paragraph
 	word      *Word
-	stats     *Stats
+	stats     *StatsView
 )
 
 var (
@@ -31,7 +33,18 @@ var (
 	pad        = 1
 )
 
+func initLogger() {
+	cfg := zap.NewProductionConfig()
+	cfg.OutputPaths = []string{
+		"./logs/app.log",
+	}
+	Logger, _ = cfg.Build()
+}
+
 func main() {
+	initLogger()
+	defer Logger.Sync()
+
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln(err)
@@ -39,10 +52,10 @@ func main() {
 	g = gui
 	defer g.Close()
 
-	paragraph = newParagraph(PARA_VIEW, topX, topY, paraW, paraH)
-	word = newWord(WORD_VIEW, topX, topY+paraH+pad, wordW, wordH)
-	stats = newStatsView(STATS_VIEW, topX+paraW+pad, topY, statsW, statsH)
-	controls := newControls(CONTROLS_VIEW, topX+paraW+pad, topY+statsH+pad, controlsW, controlsH)
+	paragraph = newParagraph(paraName, topX, topY, paraW, paraH)
+	word = newWord(wordName, topX, topY+paraH+pad, wordW, wordH)
+	stats = newStatsView(statsName, topX+paraW+pad, topY, statsW, statsH)
+	controls := newControls(controlsName, topX+paraW+pad, topY+statsH+pad, controlsW, controlsH)
 
 	g.SetManager(paragraph, word, stats, controls)
 
@@ -58,6 +71,8 @@ func main() {
 		log.Panicln(err)
 	}
 
+	Logger.Info("Starting main loop...")
+
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
@@ -66,9 +81,9 @@ func main() {
 func ctrlS(g *gocui.Gui, v *gocui.View) error {
 	paragraph.Init()
 	word.Init()
-	stats.StartTimer()
+	stats.StartRace()
 
-	g.SetCurrentView(WORD_VIEW)
+	g.SetCurrentView(wordName)
 	g.Cursor = true
 
 	return nil
@@ -77,7 +92,7 @@ func ctrlS(g *gocui.Gui, v *gocui.View) error {
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
 	paragraph.Reset()
 	word.Reset()
-	stats.StopTimer()
+	stats.StopRace()
 
 	g.Cursor = false
 

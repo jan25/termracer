@@ -6,12 +6,10 @@ import (
 	"github.com/jan25/gocui"
 )
 
-const MAX_WORD_LEN int = 15
+const maxWordLen int = 15
 
-// for developerment
-// remove when this module is fully developed
-// const TEST_WORD string = "testword"
-
+// Word is a widget to type
+// a target word
 type Word struct {
 	// name of the View
 	name string
@@ -23,6 +21,9 @@ type Word struct {
 	e gocui.Editor
 	// keep track of status of view
 	done chan struct{}
+
+	// mistakes done during race
+	Mistyped int
 }
 
 func newWord(name string, x, y int, w, h int) *Word {
@@ -35,6 +36,7 @@ func newWord(name string, x, y int, w, h int) *Word {
 	}
 }
 
+// Layout is layout manager for word widget
 func (w *Word) Layout(g *gocui.Gui) error {
 	v, err := g.SetView(w.name, w.x, w.y, w.x+w.w, w.y+w.h)
 	if err != nil && err != gocui.ErrUnknownView {
@@ -42,7 +44,7 @@ func (w *Word) Layout(g *gocui.Gui) error {
 	}
 
 	select {
-	case <-w.done:
+	case <-w.getDoneCh():
 		// channel closed
 		clearEditor(v)
 	default:
@@ -51,18 +53,36 @@ func (w *Word) Layout(g *gocui.Gui) error {
 	return nil
 }
 
+// Init initialises the word View
+// This makes the widget editable
 func (w *Word) Init() {
 	w.done = make(chan struct{})
 }
 
+func (w *Word) getDoneCh() chan struct{} {
+	if w.done == nil {
+		w.done = make(chan struct{})
+	}
+	return w.done
+}
+
+// Reset clears the widget
+// used when race is not active
 func (w *Word) Reset() {
-	close(w.done)
+	select {
+	case <-w.getDoneCh():
+		// already closed
+		// nothing to do
+	default:
+		close(w.getDoneCh())
+	}
+	w.Mistyped = 0
 }
 
 func (w *Word) init(v *gocui.View) {
 	w.e = newWordEditor()
 
-	v.Editor = newWordEditor()
+	v.Editor = w.e
 	v.Editable = true
 	v.SelBgColor = gocui.ColorRed
 	v.SelFgColor = gocui.ColorCyan
@@ -80,7 +100,7 @@ func wordEditorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 		handleDelete(v, true)
 	case key == gocui.KeyDelete:
 		handleDelete(v, false)
-	case len(word) > MAX_WORD_LEN:
+	case len(word) > maxWordLen:
 		// do not add anymore runes
 		// can only delete from here
 	case ch != 0 && mod == 0:
@@ -104,6 +124,9 @@ func checkAndHighlight(v *gocui.View) {
 	w := strings.TrimSpace(getCurrentWord(v))
 	ok := strings.HasPrefix(paragraph.CurrentWord(), w)
 	highlight(ok, v)
+	if !ok {
+		word.Mistyped++
+	}
 }
 
 func handleSpace(v *gocui.View) {
@@ -113,10 +136,13 @@ func handleSpace(v *gocui.View) {
 
 		perr := paragraph.Advance()
 		if perr != nil {
+			// finished typing all words by this points
 			paragraph.Reset()
 			word.Reset()
+			stats.StopRace()
 		}
 	} else {
+		// TODO Should we count mistyped space as mistake?
 		highlight(false, v)
 		v.EditWrite(' ')
 	}
@@ -125,6 +151,7 @@ func handleSpace(v *gocui.View) {
 func clearEditor(v *gocui.View) {
 	v.Clear()
 	v.SetCursor(v.Origin())
+	v.Editable = false
 }
 
 func highlight(ok bool, v *gocui.View) {

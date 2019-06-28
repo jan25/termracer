@@ -44,7 +44,7 @@ func (w *Word) Layout(g *gocui.Gui) error {
 	}
 
 	select {
-	case <-w.done:
+	case <-w.getDoneCh():
 		// channel closed
 		clearEditor(v)
 	default:
@@ -59,17 +59,30 @@ func (w *Word) Init() {
 	w.done = make(chan struct{})
 }
 
+func (w *Word) getDoneCh() chan struct{} {
+	if w.done == nil {
+		w.done = make(chan struct{})
+	}
+	return w.done
+}
+
 // Reset clears the widget
 // used when race is not active
 func (w *Word) Reset() {
-	close(w.done)
+	select {
+	case <-w.getDoneCh():
+		// already closed
+		// nothing to do
+	default:
+		close(w.getDoneCh())
+	}
 	w.Mistyped = 0
 }
 
 func (w *Word) init(v *gocui.View) {
 	w.e = newWordEditor()
 
-	v.Editor = newWordEditor()
+	v.Editor = w.e
 	v.Editable = true
 	v.SelBgColor = gocui.ColorRed
 	v.SelFgColor = gocui.ColorCyan

@@ -49,7 +49,7 @@ func (p *Paragraph) Layout(g *gocui.Gui) error {
 	v.Wrap = true
 
 	select {
-	case <-p.done:
+	case <-p.getDoneCh():
 		// channel closed
 		v.Clear()
 	default:
@@ -121,8 +121,21 @@ func (p *Paragraph) printWord(v *gocui.View, w string, underline bool) {
 	fmt.Fprintf(v, f, w)
 }
 
+func (p *Paragraph) getDoneCh() chan struct{} {
+	if p.done == nil {
+		p.done = make(chan struct{})
+	}
+	return p.done
+}
+
 // Reset deactivates the paragraph view
 // used to stop a race
 func (p *Paragraph) Reset() {
-	close(p.done)
+	select {
+	case <-p.getDoneCh():
+		// already closed
+		// nothing to do
+	default:
+		close(p.getDoneCh())
+	}
 }

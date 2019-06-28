@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	logger    *zap.Logger
+	Logger    *zap.Logger
 	g         *gocui.Gui
 	paragraph *Paragraph
 	word      *Word
@@ -38,12 +38,12 @@ func initLogger() {
 	cfg.OutputPaths = []string{
 		"./logs/app.log",
 	}
-	logger, _ = cfg.Build()
+	Logger, _ = cfg.Build()
 }
 
 func main() {
 	initLogger()
-	defer logger.Sync()
+	defer Logger.Sync()
 
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
@@ -70,6 +70,8 @@ func main() {
 	if err := g.SetKeybinding("", gocui.KeyCtrlE, gocui.ModNone, ctrlE); err != nil {
 		log.Panicln(err)
 	}
+
+	Logger.Info("Starting main loop...")
 
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)

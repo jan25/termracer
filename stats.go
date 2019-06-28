@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"text/tabwriter"
@@ -40,9 +41,13 @@ func (s *Stats) InitNewStat() {
 
 // FinishCurrent adds current Stat
 // to history closing the current race
-func (s *Stats) FinishCurrent() {
+func (s *Stats) FinishCurrent() error {
+	if s.Current == nil {
+		return errors.New("No current Stat to finish")
+	}
 	s.History = append(s.History, s.Current)
 	s.Current = nil
+	return nil
 }
 
 // StatsView is to keep track of

@@ -17,7 +17,7 @@ var (
 	g         *gocui.Gui
 	paragraph *Paragraph
 	word      *Word
-	stats     *Stats
+	stats     *StatsView
 )
 
 var (

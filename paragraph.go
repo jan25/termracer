@@ -63,7 +63,7 @@ func (p *Paragraph) Layout(g *gocui.Gui) error {
 func (p *Paragraph) Init() {
 	p.done = make(chan struct{})
 
-	b, _ := ioutil.ReadFile("samples/sample_paragraph2.txt")
+	b, _ := ioutil.ReadFile("samples/sample_paragraph.txt")
 	p.words = strings.Fields(string(b))
 	p.wordi = 0
 }
@@ -78,9 +78,25 @@ func (p *Paragraph) Advance() error {
 	return nil
 }
 
+// CountDoneWords returns number of words
+// already types in current race
+func (p *Paragraph) CountDoneWords() int {
+	return p.wordi
+}
+
 // CurrentWord returns target word to type
 func (p *Paragraph) CurrentWord() string {
 	return p.words[p.wordi]
+}
+
+// CharsUptoCurrent counts chars in words
+// upto/including current word
+func (p *Paragraph) CharsUptoCurrent() int {
+	c := 0
+	for i := 0; i < len(p.words); i++ {
+		c += len(p.words[i])
+	}
+	return c
 }
 
 // DrawView renders the paragraph View

@@ -21,6 +21,9 @@ type Word struct {
 	e gocui.Editor
 	// keep track of status of view
 	done chan struct{}
+
+	// mistakes done during race
+	Mistyped int
 }
 
 func newWord(name string, x, y int, w, h int) *Word {
@@ -60,6 +63,7 @@ func (w *Word) Init() {
 // used when race is not active
 func (w *Word) Reset() {
 	close(w.done)
+	w.Mistyped = 0
 }
 
 func (w *Word) init(v *gocui.View) {
@@ -107,6 +111,9 @@ func checkAndHighlight(v *gocui.View) {
 	w := strings.TrimSpace(getCurrentWord(v))
 	ok := strings.HasPrefix(paragraph.CurrentWord(), w)
 	highlight(ok, v)
+	if !ok {
+		word.Mistyped++
+	}
 }
 
 func handleSpace(v *gocui.View) {
@@ -120,6 +127,7 @@ func handleSpace(v *gocui.View) {
 			word.Reset()
 		}
 	} else {
+		// TODO Should we count mistyped space as mistake?
 		highlight(false, v)
 		v.EditWrite(' ')
 	}

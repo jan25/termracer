@@ -6,3 +6,6 @@ build
 
 # local samples
 examples
+
+# logs
+logs

@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/jan25/gocui"
+	"go.uber.org/zap"
 )
 
 const (
@@ -14,6 +15,7 @@ const (
 )
 
 var (
+	logger    *zap.Logger
 	g         *gocui.Gui
 	paragraph *Paragraph
 	word      *Word
@@ -31,7 +33,18 @@ var (
 	pad        = 1
 )
 
+func initLogger() {
+	cfg := zap.NewProductionConfig()
+	cfg.OutputPaths = []string{
+		"./logs/app.log",
+	}
+	logger, _ = cfg.Build()
+}
+
 func main() {
+	initLogger()
+	defer logger.Sync()
+
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln(err)

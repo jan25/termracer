@@ -18,7 +18,7 @@ type OneStat struct {
 	Accuracy float64
 }
 
-// Stats is datastructure to
+// Stats is a datastructure to
 // store stats for past races
 type Stats struct {
 	History []*OneStat
@@ -121,7 +121,12 @@ func (s *StatsView) updateRaceStats(v *gocui.View) error {
 	} else {
 		s.stats.Current.Wpm = 0
 	}
-	s.stats.Current.Accuracy = CalculateAccuracy(paragraph.CharsUptoCurrent(), word.Mistyped)
+	a, err := CalculateAccuracy(paragraph.CharsUptoCurrent(), word.Mistyped)
+	// Only update accuracy if we were able to calculate it
+	// This is to handle 0 chars types at start of race
+	if err == nil {
+		s.stats.Current.Accuracy = a
+	}
 
 	currentStat := s.stats.Current
 
@@ -141,8 +146,11 @@ func (s *StatsView) StartRace() error {
 }
 
 // StopRace stops the timer
-func (s *StatsView) StopRace() error {
+// finished indicates if race is finished but not ended
+func (s *StatsView) StopRace(finished bool) error {
+	if finished {
+		s.stats.FinishCurrent()
+	}
 	err := s.timer.Stop()
-	s.stats.FinishCurrent()
 	return err
 }

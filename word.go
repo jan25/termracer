@@ -57,6 +57,9 @@ func (w *Word) Layout(g *gocui.Gui) error {
 // This makes the widget editable
 func (w *Word) Init() {
 	w.done = make(chan struct{})
+
+	g.SetCurrentView(wordName)
+	g.Cursor = true
 }
 
 func (w *Word) getDoneCh() chan struct{} {
@@ -74,6 +77,7 @@ func (w *Word) Reset() {
 		// already closed
 		// nothing to do
 	default:
+		g.Cursor = false
 		close(w.getDoneCh())
 	}
 	w.Mistyped = 0
@@ -139,7 +143,7 @@ func handleSpace(v *gocui.View) {
 			// finished typing all words by this points
 			paragraph.Reset()
 			word.Reset()
-			stats.StopRace()
+			stats.StopRace(true)
 		}
 	} else {
 		// TODO Should we count mistyped space as mistake?

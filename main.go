@@ -83,18 +83,13 @@ func ctrlS(g *gocui.Gui, v *gocui.View) error {
 	word.Init()
 	stats.StartRace()
 
-	g.SetCurrentView(wordName)
-	g.Cursor = true
-
 	return nil
 }
 
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
 	paragraph.Reset()
 	word.Reset()
-	stats.StopRace()
-
-	g.Cursor = false
+	stats.StopRace(false)
 
 	return nil
 }

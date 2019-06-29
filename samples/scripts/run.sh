@@ -5,4 +5,4 @@ python3 -m pip install regex # don't know why we need this. SoMaJo breaks otherw
 pip install -r requirements.txt
 python main.py
 
-# deactivate
+deactivate

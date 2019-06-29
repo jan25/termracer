@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"io/ioutil"
 	"math"
 )
 
@@ -21,4 +22,16 @@ func CalculateAccuracy(chars int, mistypes int) (float64, error) {
 	charsF := float64(chars)
 	mistypesF = math.Min(mistypesF, charsF)
 	return 100 * (1 - mistypesF/charsF), nil
+}
+
+// ChooseParagraph chooses a paragraph from available
+// paragraphs under /samples/use. This paragraph will
+// be used in the next race and shown in paragraph View
+func ChooseParagraph() (string, error) {
+	// TODO choose random paragraph from use directory
+	b, err := ioutil.ReadFile("samples/use/hegood.txt")
+	if err != nil {
+		return "ERROR", errors.New("error in choosing a paragraph")
+	}
+	return string(b), nil
 }

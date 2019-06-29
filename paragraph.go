@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"strings"
 
 	"github.com/jan25/gocui"
@@ -63,8 +62,13 @@ func (p *Paragraph) Layout(g *gocui.Gui) error {
 func (p *Paragraph) Init() {
 	p.done = make(chan struct{})
 
-	b, _ := ioutil.ReadFile("samples/sample_paragraph.txt")
-	p.words = strings.Fields(string(b))
+	para, err := ChooseParagraph()
+	if err != nil {
+		Logger.Error("error in choosing paragraph" + fmt.Sprintf("%v", err))
+		return
+	}
+
+	p.words = strings.Fields(para)
 	p.wordi = 0
 }
 

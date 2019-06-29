@@ -18,7 +18,7 @@ type OneStat struct {
 	Accuracy float64
 }
 
-// Stats is datastructure to
+// Stats is a datastructure to
 // store stats for past races
 type Stats struct {
 	History []*OneStat
@@ -34,6 +34,7 @@ func (s *Stats) InitNewStat() {
 			Accuracy: float64(100.00),
 		}
 	}
+	Logger.Info("InitNewStat s.Current " + fmt.Sprintf("%v", s.Current));
 	if s.History == nil {
 		s.History = make([]*OneStat, 0)
 	}
@@ -46,6 +47,7 @@ func (s *Stats) FinishCurrent() error {
 		return errors.New("No current Stat to finish")
 	}
 	s.History = append(s.History, s.Current)
+	Logger.Info("finishing s.Current " + fmt.Sprintf("%v", s.History[0]));
 	s.Current = nil
 	return nil
 }
@@ -103,6 +105,7 @@ func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 	fmt.Fprintln(w, "No. WPM ACCURACY")
 	for i := len(s.stats.History) - 1; i >= 0; i-- {
 		stat := s.stats.History[i]
+		Logger.Info("stat " + fmt.Sprintf("%v", stat));
 		fmt.Fprintln(w,
 			fmt.Sprintf("%d %d %.2f%%", (i+1), stat.Wpm, stat.Accuracy))
 	}
@@ -121,7 +124,12 @@ func (s *StatsView) updateRaceStats(v *gocui.View) error {
 	} else {
 		s.stats.Current.Wpm = 0
 	}
-	s.stats.Current.Accuracy = CalculateAccuracy(paragraph.CharsUptoCurrent(), word.Mistyped)
+	a, err := CalculateAccuracy(paragraph.CharsUptoCurrent(), word.Mistyped)
+	// Only update accuracy if we were able to calculate it
+	// This is to handle 0 chars types at start of race
+	if err == nil {
+		s.stats.Current.Accuracy = a
+	}
 
 	currentStat := s.stats.Current
 

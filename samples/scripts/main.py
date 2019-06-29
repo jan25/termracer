@@ -1,40 +1,54 @@
 import string
+import re
+import hashlib
+import shutil
 from urllib import request
-
 import nltk
 
-ALPHABETS = set(string.ascii_lowercase + string.ascii_uppercase)
+# We keep generated paragraph files in this dir first
+# Among them selected ones are moved to use directory
+TRY_DIR = '../try'
 
-def _is_word(w):
-    if len(set(w).intersection(ALPHABETS)) > 0:
-        return True
-    return False
+# Includes
+# uppercase,lowercase ascii
+# digits, punctuation, space
+# VALID_CHAR_SET = set(string.printable)
+valid_chars_re = re.compile('[^%s]' % string.printable)
 
-# somajo splits even at punctuation marks
-# this patch fn tries to put together the punctuation
-# with previous word. Example ['world', '.'] => ['world.']
-# def _monkey_patch_paragraph(p):
-#     p_final = []
-#     for w in p:
-#         if not _is_word(w) and len(p_final) > 0:
-#             p_final[-1] += w
-#         else: p_final.append(w)
-#     return p_final
+# leaves whitespace chars
+# Just to make sure to remove
+# wierd characters
+def remove_nontypable(p):
+    return valid_chars_re.sub('', p)
 
 # Decide whether a paragraph should be part of 
 # set of samples
-def _approve_paragraph(p, space_tokenizer):
-    # TODO
+def paragraph_approved(p, space_tokenizer):
     words = space_tokenizer.tokenize(p)
+    if len(words) < 12 or len(words) > 50: return False
+    # TODO add numeric chars % in p check
+    # TODO Detect if p is actually a good paragraph. Check nlkt API
     return True
 
-def save_this_paragraph(p):
-    pass
+def clear_try_dir():
+    # TODO create try dir if not exists
+    shutil.rmtree(TRY_DIR)
 
-def processs_paragraph(p, space_tokenizer):
-    print('==============================')
-    if _approve_paragraph(p, space_tokenizer):
-        save_this_paragraph(p)
+def save_this_paragraph(p):
+    # generate file name. Eg 73824146.txt
+    file_name = ('%s/%s.txt' % 
+        (TRY_DIR, str(int(hashlib.sha256(p.encode('utf-8')).hexdigest(), 16) % 10**8))
+    )
+    f = open(file_name, 'w', encoding='utf-8')
+    f.write(p)
+    f.close()
+    return 1
+
+def process_paragraph(p, space_tokenizer):
+    p = remove_nontypable(p)
+    if paragraph_approved(p, space_tokenizer):
+        return save_this_paragraph(p)
+    return 0
 
 def get_raw_file():
     url = "http://www.gutenberg.org/files/2554/2554-0.txt"
@@ -44,13 +58,16 @@ def get_raw_file():
 
 def main():
     print('Tokenizing...')
-    
+    clear_try_dir()
+
     raw = get_raw_file()
     paragraph_tokenizer = nltk.tokenize.BlanklineTokenizer()
     whitespace_tokenizer = nltk.tokenize.WhitespaceTokenizer()
     paragraphs = paragraph_tokenizer.tokenize(raw)
+    how_many= 0
     for p in paragraphs:
-        processs_paragraph(p, whitespace_tokenizer)
+        how_many += process_paragraph(p, whitespace_tokenizer)
+        if how_many >= 15: break
 
     print('Done tokenizing.')
 

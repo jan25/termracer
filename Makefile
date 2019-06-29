@@ -1,8 +1,6 @@
 
-run: build exec
-
 build:
-	go build -o termracer
+	go build -o build/termracer
 
 exec:
-	./termracer
+	sh ./build/termracer

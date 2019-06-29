@@ -5,10 +5,17 @@ This application is very much in development. I'll update this README according 
 
 ## Development
 This application uses go modules. So, you could clone this repo under any
-directory and build/test/run.
+directory and build/test/run. As a helper we have Makefile in this repo, which will allow to build/test/run with single
+command.
 ```
-$ go build
-$ ./termracer
+# Builds executable
+$ make build
+
+# Runs available tests
+$ make test
+
+# Builds and runs executable
+$ make run
 ```
 
 The design/features are written in [NOTES.md](https://github.com/jan25/termracer/blob/master/NOTES.md).

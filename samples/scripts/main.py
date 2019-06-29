@@ -39,6 +39,7 @@ def clear_try_dir():
         print('Creating /try directory..')
         os.mkdir(TRY_DIR)
     else:
+        print('Clearing /try directory...')
         shutil.rmtree(TRY_DIR)
 
 def save_this_paragraph(p):

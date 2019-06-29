@@ -34,7 +34,6 @@ func (s *Stats) InitNewStat() {
 			Accuracy: float64(100.00),
 		}
 	}
-	Logger.Info("InitNewStat s.Current " + fmt.Sprintf("%v", s.Current));
 	if s.History == nil {
 		s.History = make([]*OneStat, 0)
 	}
@@ -47,7 +46,6 @@ func (s *Stats) FinishCurrent() error {
 		return errors.New("No current Stat to finish")
 	}
 	s.History = append(s.History, s.Current)
-	Logger.Info("finishing s.Current " + fmt.Sprintf("%v", s.History[0]));
 	s.Current = nil
 	return nil
 }
@@ -105,7 +103,6 @@ func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 	fmt.Fprintln(w, "No. WPM ACCURACY")
 	for i := len(s.stats.History) - 1; i >= 0; i-- {
 		stat := s.stats.History[i]
-		Logger.Info("stat " + fmt.Sprintf("%v", stat));
 		fmt.Fprintln(w,
 			fmt.Sprintf("%d %d %.2f%%", (i+1), stat.Wpm, stat.Accuracy))
 	}
@@ -149,8 +146,11 @@ func (s *StatsView) StartRace() error {
 }
 
 // StopRace stops the timer
-func (s *StatsView) StopRace() error {
+// finished indicates if race is finished but not ended
+func (s *StatsView) StopRace(finished bool) error {
+	if finished {
+		s.stats.FinishCurrent()
+	}
 	err := s.timer.Stop()
-	s.stats.FinishCurrent()
 	return err
 }

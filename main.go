@@ -92,7 +92,7 @@ func ctrlS(g *gocui.Gui, v *gocui.View) error {
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
 	paragraph.Reset()
 	word.Reset()
-	stats.StopRace()
+	stats.StopRace(false)
 
 	g.Cursor = false
 

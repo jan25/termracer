@@ -1,15 +1,29 @@
 
 ## Basic features
 
-- Given random paragraph, type as fast as possible
+- Goal
+    - Given random paragraph, type as fast as possible
+    - Improved typing skills can be infered from WPM, Accuracy metrics of each race
+- Functions:
     - Start new race
-    - End race (Stops current race and go to command mode)
-    - Command mode
-        - When race is not happening (after a race or when race is stopped)
-        - See stats (recent races)
-    - stats:
-        - time to finish typing
-        - count of mistakes
+        - Ctrl+s starts new race if ui is in stats mode
+        - Start a countdown in word view before race begins
+        - When race begins, view is focused to word view to allow typing words
+    - End race
+        - Ctrl+e ends a current race and switches ui to stats mode
+        - Race auto ends when all words are finished, and ui moves to stats mode
+        - Only if race was finished by typing all the words, will the stats for the race get added to stats view
+    - Stats mode
+        - When no race is in progress, the stats view will show stats from recent races
+        - Stats are ordered in recent first order
+        - Scroll through historical stats
+        - We keep track of Words per minute and Accuracy for a race
+    - Controls view
+        - Displays help text for ui controls
+        - Ctrl+x can collapse or expand this view
+    - Exit game
+        - Ctrl+c exits from racer ui to the command line
+        - Asks for confirmation Y/N before exiting
     
 ```    
 +---------------------------------------------------------------------+             
@@ -54,5 +68,4 @@
 
         
 TODO
-- need module to strip new lines in paragraph files
 - need to arrange words properly in para view. algorithm to adjust spacing? just look for library

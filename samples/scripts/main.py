@@ -2,8 +2,12 @@ import string
 import re
 import hashlib
 import shutil
+import os
 from urllib import request
 import nltk
+
+# URL pointing to raw text book to download text and parse
+BOOK_URL = "http://www.gutenberg.org/files/2554/2554-0.txt"
 
 # We keep generated paragraph files in this dir first
 # Among them selected ones are moved to use directory
@@ -31,14 +35,18 @@ def paragraph_approved(p, space_tokenizer):
     return True
 
 def clear_try_dir():
-    # TODO create try dir if not exists
-    shutil.rmtree(TRY_DIR)
+    if not os.path.exists(TRY_DIR):
+        print('Creating /try directory..')
+        os.mkdir(TRY_DIR)
+    else:
+        shutil.rmtree(TRY_DIR)
 
 def save_this_paragraph(p):
     # generate file name. Eg 73824146.txt
     file_name = ('%s/%s.txt' % 
         (TRY_DIR, str(int(hashlib.sha256(p.encode('utf-8')).hexdigest(), 16) % 10**8))
     )
+    print('Saving paragraph file %s' % file_name)
     f = open(file_name, 'w', encoding='utf-8')
     f.write(p)
     f.close()
@@ -51,8 +59,7 @@ def process_paragraph(p, space_tokenizer):
     return 0
 
 def get_raw_file():
-    url = "http://www.gutenberg.org/files/2554/2554-0.txt"
-    response = request.urlopen(url)
+    response = request.urlopen(BOOK_URL)
     raw = response.read().decode('utf8')
     return raw
 
@@ -64,11 +71,11 @@ def main():
     paragraph_tokenizer = nltk.tokenize.BlanklineTokenizer()
     whitespace_tokenizer = nltk.tokenize.WhitespaceTokenizer()
     paragraphs = paragraph_tokenizer.tokenize(raw)
-    how_many= 0
+    generated_count = 0
     for p in paragraphs:
-        how_many += process_paragraph(p, whitespace_tokenizer)
-        if how_many >= 15: break
+        generated_count += process_paragraph(p, whitespace_tokenizer)
 
+    print ('Generated %d paragraphs.' % generated_count)
     print('Done tokenizing.')
 
 if __name__ == '__main__':

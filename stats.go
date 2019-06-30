@@ -89,6 +89,7 @@ func (s *Stats) LoadHistory() error {
 		}
 	}
 	Logger.Info("Finished loading records from file", zap.Int("records", len(records)))
+	s.Selected = len(s.History) - 1
 
 	return nil
 }

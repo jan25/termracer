@@ -64,7 +64,7 @@ func (p *Paragraph) Init() {
 
 	para, err := ChooseParagraph()
 	if err != nil {
-		Logger.Error("error in choosing paragraph" + fmt.Sprintf("%v", err))
+		Logger.Error(fmt.Sprintf("%v", err))
 		return
 	}
 

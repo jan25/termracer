@@ -137,7 +137,7 @@ func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 		return
 	}
 
-	fmt.Fprintln(v, "wpm acc. when")
+	fmt.Fprintln(v, "\033[0;4mwpm acc. when    \033[0m")
 
 	selected := s.stats.Selected
 	for i := selected; i >= 0; i-- {

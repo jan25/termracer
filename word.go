@@ -161,6 +161,7 @@ func clearEditor(v *gocui.View) {
 
 func highlight(ok bool, v *gocui.View) {
 	v.Highlight = !ok
+	paragraph.Mistyped = !ok
 }
 
 func getCurrentWord(v *gocui.View) string {

@@ -118,7 +118,7 @@ func (s *StatsView) Layout(g *gocui.Gui) error {
 		v.Title = "Race in progress"
 		s.updateRaceStats(v)
 	} else {
-		v.Title = "Recent Races"
+		v.Title = "Race History"
 		g.SetCurrentView(s.name)
 		s.showRecentRaceStats(v)
 	}
@@ -129,15 +129,17 @@ func (s *StatsView) Layout(g *gocui.Gui) error {
 func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 	v.Clear()
 
+	if len(s.stats.History) == 0 {
+		v.Wrap = true
+		fmt.Fprintf(v, "No races available to show")
+		return
+	}
+
 	w := new(tabwriter.Writer)
 	w.Init(v, 0, 9, 0, '\t', 0)
 	fmt.Fprintln(w, "No. WPM ACCURACY")
 
 	selected := s.stats.Selected
-	if len(s.stats.History) == 0 {
-		selected = -1
-	}
-
 	for i := selected; i >= 0; i-- {
 		stat := s.stats.History[i]
 		f := "%s\n"
@@ -174,7 +176,7 @@ func (s *StatsView) updateRaceStats(v *gocui.View) error {
 	v.Clear()
 	fmt.Fprintf(v, "%02d:%02d \n", elapsedTime.Mins, elapsedTime.Secs)
 	if currentStat != nil {
-		fmt.Fprintf(v, "WPM %d \nACCURACY %.2f%% \n", currentStat.Wpm, currentStat.Accuracy)
+		fmt.Fprintf(v, "wpm %d \nAccuracy %.2f%% \n", currentStat.Wpm, currentStat.Accuracy)
 	}
 	return nil
 }

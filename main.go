@@ -15,11 +15,13 @@ const (
 )
 
 var (
+	// Logger is a global file logger
 	Logger    *zap.Logger
 	g         *gocui.Gui
 	paragraph *Paragraph
 	word      *Word
 	stats     *StatsView
+	controls  *Controls
 )
 
 var (
@@ -55,9 +57,11 @@ func main() {
 	paragraph = newParagraph(paraName, topX, topY, paraW, paraH)
 	word = newWord(wordName, topX, topY+paraH+pad, wordW, wordH)
 	stats = newStatsView(statsName, topX+paraW+pad, topY, statsW, statsH)
-	controls := newControls(controlsName, topX+paraW+pad, topY+statsH+pad, controlsW, controlsH)
+	controls = newControls(controlsName, topX+paraW+pad, topY+statsH+pad, controlsW, controlsH)
 
 	g.SetManager(paragraph, word, stats, controls)
+
+	stats.InitKeyBindings(g)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
@@ -72,7 +76,6 @@ func main() {
 	}
 
 	Logger.Info("Starting main loop...")
-
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
@@ -82,6 +85,7 @@ func ctrlS(g *gocui.Gui, v *gocui.View) error {
 	paragraph.Init()
 	word.Init()
 	stats.StartRace()
+	controls.RaceModeControls()
 
 	return nil
 }
@@ -90,6 +94,7 @@ func ctrlE(g *gocui.Gui, v *gocui.View) error {
 	paragraph.Reset()
 	word.Reset()
 	stats.StopRace(false)
+	controls.DefaultControls()
 
 	return nil
 }

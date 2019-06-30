@@ -21,7 +21,9 @@ type OneStat struct {
 // Stats is a datastructure to
 // store stats for past races
 type Stats struct {
-	History []*OneStat
+	History  []*OneStat
+	Selected int // To keep track of highlighted stat in history
+
 	Current *OneStat
 }
 
@@ -47,6 +49,32 @@ func (s *Stats) FinishCurrent() error {
 	}
 	s.History = append(s.History, s.Current)
 	s.Current = nil
+	// Always selected most recent race stat on finish
+	s.Selected = len(s.History) - 1
+	return nil
+}
+
+// ScrollDown is a keybinding
+// Increment selected stat index
+func (s *Stats) ScrollDown(g *gocui.Gui, v *gocui.View) error {
+	if s.Selected+1 < len(s.History) {
+		s.Selected++
+	} else {
+		Logger.Info("End of history reached. Can not scroll further up")
+	}
+	// just to adhere to KeyBinding handler interface
+	return nil
+}
+
+// ScrollUp is a keybinding
+// Decrements selected stat index
+func (s *Stats) ScrollUp(g *gocui.Gui, v *gocui.View) error {
+	if s.Selected > 0 {
+		s.Selected--
+	} else {
+		Logger.Info("Top of history reached. Can not scroll further down")
+	}
+	// just to adhere to KeyBinding handler interface
 	return nil
 }
 
@@ -87,8 +115,11 @@ func (s *StatsView) Layout(g *gocui.Gui) error {
 	}
 
 	if s.timer.IsActive() {
+		v.Title = "Race in progress"
 		s.updateRaceStats(v)
 	} else {
+		v.Title = "Recent Races"
+		g.SetCurrentView(s.name)
 		s.showRecentRaceStats(v)
 	}
 
@@ -101,10 +132,20 @@ func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 	w := new(tabwriter.Writer)
 	w.Init(v, 0, 9, 0, '\t', 0)
 	fmt.Fprintln(w, "No. WPM ACCURACY")
-	for i := len(s.stats.History) - 1; i >= 0; i-- {
+
+	selected := s.stats.Selected
+	if len(s.stats.History) == 0 {
+		selected = -1
+	}
+
+	for i := selected; i >= 0; i-- {
 		stat := s.stats.History[i]
-		fmt.Fprintln(w,
-			fmt.Sprintf("%d %d %.2f%%", (i+1), stat.Wpm, stat.Accuracy))
+		f := "%s\n"
+		if i == s.stats.Selected {
+			f = "\033[0;7m%s\033[0m\n"
+		}
+		fmt.Fprintf(w, f,
+			fmt.Sprintf("%-3d %-3d %-.2f%%", (i+1), stat.Wpm, stat.Accuracy))
 	}
 	w.Flush()
 }
@@ -153,4 +194,14 @@ func (s *StatsView) StopRace(finished bool) error {
 	}
 	err := s.timer.Stop()
 	return err
+}
+
+// InitKeyBindings adds keybindings to scroll in stats history
+func (s *StatsView) InitKeyBindings(g *gocui.Gui) {
+	if err := g.SetKeybinding(s.name, gocui.KeyCtrlJ, gocui.ModNone, s.stats.ScrollUp); err != nil {
+		Logger.Warn(fmt.Sprintf("%v", err))
+	}
+	if err := g.SetKeybinding(s.name, gocui.KeyCtrlK, gocui.ModNone, s.stats.ScrollDown); err != nil {
+		Logger.Warn(fmt.Sprintf("%v", err))
+	}
 }

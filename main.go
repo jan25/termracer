@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/jan25/gocui"
 	"go.uber.org/zap"
@@ -35,16 +37,38 @@ var (
 	pad        = 1
 )
 
-func initLogger() {
+func initLogger() error {
 	cfg := zap.NewProductionConfig()
-	cfg.OutputPaths = []string{
-		"./logs/app.log",
+	path := "./logs/app.log"
+
+	// create logs directory if not exists
+	dirName := filepath.Dir(path)
+	if _, serr := os.Stat(dirName); serr != nil {
+		merr := os.MkdirAll(dirName, os.ModePerm)
+		if merr != nil {
+			return merr
+		}
 	}
+
+	var _, err = os.Stat(path)
+	// create log file if not exists
+	if os.IsNotExist(err) {
+		file, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+	}
+
+	cfg.OutputPaths = []string{path}
 	Logger, _ = cfg.Build()
+	return nil
 }
 
 func main() {
-	initLogger()
+	if err := initLogger(); err != nil {
+		log.Panicln(err)
+	}
 	defer Logger.Sync()
 
 	gui, err := gocui.NewGui(gocui.OutputNormal)

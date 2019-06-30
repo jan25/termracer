@@ -2,10 +2,21 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"math"
 	"math/rand"
+	"time"
 )
+
+// FormatDate formats time into
+// DD-MM-YYYY format
+func FormatDate(t time.Time) string {
+	y, m, d := t.Date()
+	// keep last 2 digits in year
+	y %= 100
+	return fmt.Sprintf("%02d/%02d/%d", d, m, y)
+}
 
 // CalculateWpm calculates words per minute
 // based on words typed so far and time elapsed

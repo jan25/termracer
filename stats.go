@@ -3,8 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-
-	"text/tabwriter"
+	"time"
 
 	"github.com/jan25/gocui"
 )
@@ -16,6 +15,8 @@ type OneStat struct {
 	Wpm int
 	// accuracy eg. 95.6%
 	Accuracy float64
+	// time of race
+	When time.Time
 }
 
 // Stats is a datastructure to
@@ -34,6 +35,7 @@ func (s *Stats) InitNewStat() {
 		s.Current = &OneStat{
 			Wpm:      0,
 			Accuracy: float64(100.00),
+			When:     time.Now(),
 		}
 	}
 	if s.History == nil {
@@ -135,9 +137,7 @@ func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 		return
 	}
 
-	w := new(tabwriter.Writer)
-	w.Init(v, 0, 9, 0, '\t', 0)
-	fmt.Fprintln(w, "No. WPM ACCURACY")
+	fmt.Fprintln(v, "wpm acc. when")
 
 	selected := s.stats.Selected
 	for i := selected; i >= 0; i-- {
@@ -146,10 +146,9 @@ func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 		if i == s.stats.Selected {
 			f = "\033[0;7m%s\033[0m\n"
 		}
-		fmt.Fprintf(w, f,
-			fmt.Sprintf("%-3d %-3d %-.2f%%", (i+1), stat.Wpm, stat.Accuracy))
+		fmt.Fprintf(v, f,
+			fmt.Sprintf("%-3d %3d%% %-8s", stat.Wpm, int(stat.Accuracy), FormatDate(stat.When)))
 	}
-	w.Flush()
 }
 
 func (s *StatsView) updateRaceStats(v *gocui.View) error {

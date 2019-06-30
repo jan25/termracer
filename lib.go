@@ -1,13 +1,50 @@
 package main
 
 import (
+	"strings"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
 	"math/rand"
+	"os"
 	"time"
 )
+
+// CreateFileIfNotExists creates file if not exists
+func CreateFileIfNotExists(fname string) error {
+	var _, err = os.Stat(fname)
+	// create log file if not exists
+	if os.IsNotExist(err) {
+		file, err := os.Create(fname)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+	}
+	return nil
+}
+
+// AppendLineEOF appends a given line to end of a file
+func AppendLineEOF(fname, line string) error {
+	f, err := os.OpenFile(fname, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		Logger.Error("Failed to append to file " + fname)
+		return err
+	}
+	defer f.Close()
+
+	// Add new line if not provided as part of line
+	if !strings.HasSuffix(line, "\n") {
+		line += "\n"
+	}
+
+	if _, err := f.Write([]byte(line)); err != nil {
+		Logger.Error("Failed to write to file " + fname)
+		return err
+	}
+	return nil
+}
 
 // FormatDate formats time into
 // DD-MM-YYYY format
@@ -45,6 +82,8 @@ func ChooseParagraph() (string, error) {
 	if err != nil {
 		return "ERROR", errors.New("failed to read use directory")
 	}
+
+	rand.Seed(time.Now().Unix())
 	randf := files[rand.Int31n(int32(n))]
 
 	b, err := ioutil.ReadFile("samples/use/" + randf.Name())

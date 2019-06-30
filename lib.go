@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"math"
+	"math/rand"
 )
 
 // CalculateWpm calculates words per minute
@@ -28,10 +29,16 @@ func CalculateAccuracy(chars int, mistypes int) (float64, error) {
 // paragraphs under /samples/use. This paragraph will
 // be used in the next race and shown in paragraph View
 func ChooseParagraph() (string, error) {
-	// TODO choose random paragraph from use directory
-	b, err := ioutil.ReadFile("samples/use/hegood.txt")
+	files, err := ioutil.ReadDir("samples/use")
+	n := len(files)
 	if err != nil {
-		return "ERROR", errors.New("error in choosing a paragraph")
+		return "ERROR", errors.New("failed to read use directory")
+	}
+	randf := files[rand.Int31n(int32(n))]
+
+	b, err := ioutil.ReadFile("samples/use/" + randf.Name())
+	if err != nil {
+		return "ERROR", errors.New("error in reading a paragraph file")
 	}
 	return string(b), nil
 }

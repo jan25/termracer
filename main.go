@@ -124,5 +124,6 @@ func ctrlE(g *gocui.Gui, v *gocui.View) error {
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
+	Logger.Info("Quitting termracer..")
 	return gocui.ErrQuit
 }

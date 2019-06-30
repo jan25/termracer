@@ -59,6 +59,8 @@ func main() {
 
 	g.SetManager(paragraph, word, stats, controls)
 
+	stats.InitKeyBindings(g)
+
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
 	}

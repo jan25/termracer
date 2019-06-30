@@ -76,7 +76,6 @@ func main() {
 	}
 
 	Logger.Info("Starting main loop...")
-
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}

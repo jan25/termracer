@@ -115,8 +115,10 @@ func (s *StatsView) Layout(g *gocui.Gui) error {
 	}
 
 	if s.timer.IsActive() {
+		v.Title = "Race in progress"
 		s.updateRaceStats(v)
 	} else {
+		v.Title = "Recent Races"
 		g.SetCurrentView(s.name)
 		s.showRecentRaceStats(v)
 	}

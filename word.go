@@ -144,6 +144,7 @@ func handleSpace(v *gocui.View) {
 			paragraph.Reset()
 			word.Reset()
 			stats.StopRace(true)
+			controls.DefaultControls()
 		}
 	} else {
 		// TODO Should we count mistyped space as mistake?

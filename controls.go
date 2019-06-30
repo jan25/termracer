@@ -15,15 +15,19 @@ type Controls struct {
 	// position and dims
 	x, y int
 	w, h int
+
+	// content to display
+	content string
 }
 
 func newControls(name string, x, y int, w, h int) *Controls {
 	return &Controls{
-		name: name,
-		x:    x,
-		y:    y,
-		w:    w,
-		h:    h,
+		name:    name,
+		x:       x,
+		y:       y,
+		w:       w,
+		h:       h,
+		content: defaultContent,
 	}
 }
 
@@ -33,12 +37,32 @@ func (c *Controls) Layout(g *gocui.Gui) error {
 	if err != nil && err != gocui.ErrUnknownView {
 		return err
 	}
+	v.Title = title
 
-	fmt.Fprintf(v, "%s", controlsContent)
+	v.Clear()
+	fmt.Fprintf(v, "%s", c.content)
 	return nil
 }
 
-const controlsContent = `
-Ctrl+c Quit
-Ctrl+s New race
-Ctrl+e End race`
+// RaceModeControls sets up controls
+// for during a race
+func (c *Controls) RaceModeControls() {
+	c.content = raceModeContent
+}
+
+// DefaultControls sets up controls
+// when no race in progress
+func (c *Controls) DefaultControls() {
+	c.content = defaultContent
+}
+
+const title = "Controls"
+
+const defaultContent = `
+Ctrl+s		New race
+Ctrl+j/k	Scroll
+Ctrl+c 		Quit`
+
+const raceModeContent = `
+Ctrl+e End race
+Ctrl+c Quit`

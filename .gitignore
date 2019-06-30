@@ -9,3 +9,6 @@ examples
 
 # logs
 logs
+
+# Local filestorage
+racehistory.csv

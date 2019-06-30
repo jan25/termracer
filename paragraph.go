@@ -23,6 +23,8 @@ type Paragraph struct {
 	words []string
 	// index of current word being typed
 	wordi int
+	// whether current word is mistyped
+	Mistyped bool
 }
 
 func newParagraph(name string, x, y int, w, h int) *Paragraph {
@@ -108,19 +110,24 @@ func (p *Paragraph) DrawView(v *gocui.View) {
 	v.Clear()
 
 	for i, w := range p.words {
-		underline := false
+		highlight := false
 		if i == p.wordi {
-			underline = true
+			highlight = true
 		}
 
-		p.printWord(v, w, underline)
+		p.printWord(v, w, highlight)
 	}
 }
 
-func (p *Paragraph) printWord(v *gocui.View, w string, underline bool) {
+func (p *Paragraph) printWord(v *gocui.View, w string, highlight bool) {
 	f := "%s "
-	if underline {
-		f = "\033[0;7m%s\033[0m "
+	if highlight {
+		// Green bg
+		f = "\033[32;7m%s\033[0m "
+		if p.Mistyped {
+			// Red/pink bg
+			f = "\033[31;7m%s\033[0m "
+		}
 	}
 	fmt.Fprintf(v, f, w)
 }

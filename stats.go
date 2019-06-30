@@ -1,12 +1,16 @@
 package main
 
 import (
+	"encoding/csv"
+	"os"
 	"errors"
 	"fmt"
-
-	"text/tabwriter"
+	"time"
+	"strconv"
+	"strings"
 
 	"github.com/jan25/gocui"
+	"go.uber.org/zap"
 )
 
 // OneStat represents information
@@ -16,6 +20,8 @@ type OneStat struct {
 	Wpm int
 	// accuracy eg. 95.6%
 	Accuracy float64
+	// time of race
+	When time.Time
 }
 
 // Stats is a datastructure to
@@ -27,6 +33,67 @@ type Stats struct {
 	Current *OneStat
 }
 
+// LoadHistory loads race history from local
+// file storage into inmemory History array
+func (s *Stats) LoadHistory() error {
+	fname := "racehistory.csv"
+	if err := CreateFileIfNotExists(fname); err != nil {
+		Logger.Error("Error in creating a file")
+		return err
+	}
+
+	f, err := os.Open(fname)
+	if err != nil {
+		Logger.Error("failed to open racehistory.csv file")
+		return err
+	}
+	defer f.Close()
+	r := csv.NewReader(f)
+
+	// column name to index mapper
+	cmapper := make(map[string]int)
+	records, _ := r.ReadAll()
+	if len(records) == 0 {
+		// Append column names as first line
+		// to handle the case of newly created file
+		AppendLineEOF("racehistory.csv", "wpm,acc,when")
+	}
+	for i, record := range records {
+		if i == 0 {
+			// Read column names
+			for j, cname := range record {
+				cmapper[cname] = j
+			}
+		} else {
+			if s.History == nil {
+				s.History = make([]*OneStat, 0)
+			}
+			wpm, err := strconv.Atoi(record[cmapper["wpm"]])
+			if err != nil {
+				Logger.Warn("failed to read a record: " + strings.Join(record, ""))
+				continue
+			}
+			acc, err := strconv.ParseFloat(record[cmapper["acc"]], 64)
+			if err != nil {
+				Logger.Warn("failed to read a record: " + strings.Join(record, ""))
+				continue
+			}
+			when, err := time.Parse("02/01/06", record[cmapper["when"]])
+
+			stat := &OneStat{
+				Wpm: wpm,
+				Accuracy: acc,
+				When: when,
+			}
+			s.History = append(s.History, stat)
+		}
+	}
+	Logger.Info("Finished loading records from file", zap.Int("records", len(records)))
+	s.Selected = len(s.History) - 1
+
+	return nil
+}
+
 // InitNewStat initializes current OneStat
 // used for beginning a new race
 func (s *Stats) InitNewStat() {
@@ -34,6 +101,7 @@ func (s *Stats) InitNewStat() {
 		s.Current = &OneStat{
 			Wpm:      0,
 			Accuracy: float64(100.00),
+			When:     time.Now(),
 		}
 	}
 	if s.History == nil {
@@ -48,14 +116,27 @@ func (s *Stats) FinishCurrent() error {
 		return errors.New("No current Stat to finish")
 	}
 	s.History = append(s.History, s.Current)
+	s.AppendToFile(s.Current) // append to storage file
 	s.Current = nil
 	// Always selected most recent race stat on finish
 	s.Selected = len(s.History) - 1
 	return nil
 }
 
+// AppendToFile appends last finished race to
+// localstorage file
+func (s *Stats) AppendToFile(stat *OneStat) error {
+	line := fmt.Sprintf("%d,%f,%s", stat.Wpm, stat.Accuracy, FormatDate(stat.When))
+	if err := AppendLineEOF("racehistory.csv", line); err != nil {
+		Logger.Warn("Failed to append to file")
+		return err
+	}
+	Logger.Info("Successfuly appended to file")
+	return nil
+}
+
 // ScrollDown is a keybinding
-// Increment selected stat index
+// increments selected stat index
 func (s *Stats) ScrollDown(g *gocui.Gui, v *gocui.View) error {
 	if s.Selected+1 < len(s.History) {
 		s.Selected++
@@ -67,7 +148,7 @@ func (s *Stats) ScrollDown(g *gocui.Gui, v *gocui.View) error {
 }
 
 // ScrollUp is a keybinding
-// Decrements selected stat index
+// decrements selected stat index
 func (s *Stats) ScrollUp(g *gocui.Gui, v *gocui.View) error {
 	if s.Selected > 0 {
 		s.Selected--
@@ -96,6 +177,8 @@ type StatsView struct {
 }
 
 func newStatsView(name string, x, y int, w, h int) *StatsView {
+	stats := &Stats{}
+	stats.LoadHistory()
 	return &StatsView{
 		name:  name,
 		x:     x,
@@ -103,7 +186,7 @@ func newStatsView(name string, x, y int, w, h int) *StatsView {
 		w:     w,
 		h:     h,
 		timer: NewTimer(),
-		stats: &Stats{},
+		stats: stats,
 	}
 }
 
@@ -118,7 +201,7 @@ func (s *StatsView) Layout(g *gocui.Gui) error {
 		v.Title = "Race in progress"
 		s.updateRaceStats(v)
 	} else {
-		v.Title = "Recent Races"
+		v.Title = "Race History"
 		g.SetCurrentView(s.name)
 		s.showRecentRaceStats(v)
 	}
@@ -129,25 +212,24 @@ func (s *StatsView) Layout(g *gocui.Gui) error {
 func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 	v.Clear()
 
-	w := new(tabwriter.Writer)
-	w.Init(v, 0, 9, 0, '\t', 0)
-	fmt.Fprintln(w, "No. WPM ACCURACY")
-
-	selected := s.stats.Selected
 	if len(s.stats.History) == 0 {
-		selected = -1
+		v.Wrap = true
+		fmt.Fprintf(v, "No races available to show")
+		return
 	}
 
+	fmt.Fprintln(v, "\033[0;4mwpm acc. when    \033[0m")
+
+	selected := s.stats.Selected
 	for i := selected; i >= 0; i-- {
 		stat := s.stats.History[i]
 		f := "%s\n"
 		if i == s.stats.Selected {
 			f = "\033[0;7m%s\033[0m\n"
 		}
-		fmt.Fprintf(w, f,
-			fmt.Sprintf("%-3d %-3d %-.2f%%", (i+1), stat.Wpm, stat.Accuracy))
+		fmt.Fprintf(v, f,
+			fmt.Sprintf("%-3d %3d%% %-8s", stat.Wpm, int(stat.Accuracy), FormatDate(stat.When)))
 	}
-	w.Flush()
 }
 
 func (s *StatsView) updateRaceStats(v *gocui.View) error {
@@ -174,7 +256,7 @@ func (s *StatsView) updateRaceStats(v *gocui.View) error {
 	v.Clear()
 	fmt.Fprintf(v, "%02d:%02d \n", elapsedTime.Mins, elapsedTime.Secs)
 	if currentStat != nil {
-		fmt.Fprintf(v, "WPM %d \nACCURACY %.2f%% \n", currentStat.Wpm, currentStat.Accuracy)
+		fmt.Fprintf(v, "wpm %d \nAccuracy %.2f%% \n", currentStat.Wpm, currentStat.Accuracy)
 	}
 	return nil
 }

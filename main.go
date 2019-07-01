@@ -65,11 +65,40 @@ func initLogger() error {
 	return nil
 }
 
+// checks to see data dirs required for application are present
+// creates dirs/files if not present
+func ensureDataDirs() error {
+	// ensure samples use directory
+	s, err := GetSamplesUseDir()
+	if err != nil {
+		return err
+	}
+	if err := CreateDirIfNotExists(s); err != nil {
+		return err
+	}
+
+	// ensure racehistory file
+	rh, err := GetHistoryFilePath()
+	if err != nil {
+		return err
+	}
+	if err := CreateFileIfNotExists(rh); err != nil {
+		return err
+	}
+	Logger.Info("created racehistory file")
+
+	return nil
+}
+
 func main() {
 	if err := initLogger(); err != nil {
 		log.Panicln(err)
 	}
 	defer Logger.Sync()
+
+	if err := ensureDataDirs(); err != nil {
+		log.Panicln(err)
+	}
 
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {

@@ -36,12 +36,7 @@ type Stats struct {
 // LoadHistory loads race history from local
 // file storage into inmemory History array
 func (s *Stats) LoadHistory() error {
-	fname := "racehistory.csv"
-	if err := CreateFileIfNotExists(fname); err != nil {
-		Logger.Error("Error in creating a file")
-		return err
-	}
-
+	fname, _ := GetHistoryFilePath()
 	f, err := os.Open(fname)
 	if err != nil {
 		Logger.Error("failed to open racehistory.csv file")
@@ -56,7 +51,7 @@ func (s *Stats) LoadHistory() error {
 	if len(records) == 0 {
 		// Append column names as first line
 		// to handle the case of newly created file
-		AppendLineEOF("racehistory.csv", "wpm,acc,when")
+		AppendLineEOF(fname, "wpm,acc,when")
 	}
 	for i, record := range records {
 		if i == 0 {
@@ -127,7 +122,8 @@ func (s *Stats) FinishCurrent() error {
 // localstorage file
 func (s *Stats) AppendToFile(stat *OneStat) error {
 	line := fmt.Sprintf("%d,%f,%s", stat.Wpm, stat.Accuracy, FormatDate(stat.When))
-	if err := AppendLineEOF("racehistory.csv", line); err != nil {
+	f, _ := GetHistoryFilePath()
+	if err := AppendLineEOF(f, line); err != nil {
 		Logger.Warn("Failed to append to file")
 		return err
 	}

@@ -41,7 +41,3 @@ func main() {
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
-
-const paragraph = `
-This is a dummy paragraph.
-`

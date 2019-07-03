@@ -18,4 +18,18 @@ $ make test
 $ make run
 ```
 
+The paragraph for a race is served by a backend server which is under `/server` directory. Server can be started indepedently using either docker cli or docker-compose.
+```
+# Build and run using Docker cli
+$ docker build -t termracer-server
+$ docker run --rm -d termracer-server
+
+# OR
+
+# Use docker compose to bootup server
+$ docker-compose up -d
+# To stop server
+$ docker-compose down
+```
+
 The design/features are written in [NOTES.md](https://github.com/jan25/termracer/blob/master/NOTES.md).

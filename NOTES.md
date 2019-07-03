@@ -79,6 +79,7 @@ TODO
 - Write/Read stats to local file
 - Convert stats table into widget so we can scroll through historical stats
 - need to arrange words properly in para view. algorithm to adjust spacing? just look for library
+- How about a dashboard to submit book urls to generate samples?
 
 
 

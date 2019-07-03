@@ -1,11 +1,10 @@
 package main
 
 import (
+	"github.com/jan25/termracer/server/client"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"math"
-	"math/rand"
+	"math"	
 	"os"
 	"strings"
 	"time"
@@ -85,22 +84,11 @@ func CalculateAccuracy(chars int, mistypes int) (float64, error) {
 	return 100 * (1 - mistypesF/charsF), nil
 }
 
-// ChooseParagraph chooses a paragraph from available
-// paragraphs under /samples/use. This paragraph will
-// be used in the next race and shown in paragraph View
+// ChooseParagraph calls the server to fetch a paragraph
 func ChooseParagraph() (string, error) {
-	files, err := ioutil.ReadDir("samples/use")
-	n := len(files)
+	p, err := client.ChooseParagraph()
 	if err != nil {
-		return "ERROR", errors.New("failed to read use directory")
+		Logger.Info("Error fetching paragraph from server " + err.Error())
 	}
-
-	rand.Seed(time.Now().Unix())
-	randf := files[rand.Int31n(int32(n))]
-
-	b, err := ioutil.ReadFile("samples/use/" + randf.Name())
-	if err != nil {
-		return "ERROR", errors.New("error in reading a paragraph file")
-	}
-	return string(b), nil
+	return p, nil
 }

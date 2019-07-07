@@ -1,6 +1,8 @@
 # termracer
 Practise your typing skills from within your terminal. This app is inspired by various online typing tutor websites.
 
+![](https://github.com/jan25/termracer/blob/make-release-0.0.1/example.gif)
+
 ## Install
 
 ```

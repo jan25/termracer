@@ -39,7 +39,8 @@ var (
 
 func initLogger() error {
 	cfg := zap.NewProductionConfig()
-	path := "./logs/app.log"
+	d, _ := GetTopLevelDir()
+	path := d + "/logs/app.log"
 
 	// create logs directory if not exists
 	dirName := filepath.Dir(path)
@@ -76,6 +77,9 @@ func ensureDataDirs() error {
 	if err := CreateDirIfNotExists(s); err != nil {
 		return err
 	}
+	if err := GenerateLocalParagraphs(); err != nil {
+		return err
+	}
 
 	// ensure racehistory file
 	rh, err := GetHistoryFilePath()
@@ -85,20 +89,18 @@ func ensureDataDirs() error {
 	if err := CreateFileIfNotExists(rh); err != nil {
 		return err
 	}
-	Logger.Info("created racehistory file")
 
 	return nil
 }
 
 func main() {
+	if err := ensureDataDirs(); err != nil {
+		log.Panicln(err)
+	}
 	if err := initLogger(); err != nil {
 		log.Panicln(err)
 	}
 	defer Logger.Sync()
-
-	if err := ensureDataDirs(); err != nil {
-		log.Panicln(err)
-	}
 
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {

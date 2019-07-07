@@ -32,6 +32,15 @@ func GetHistoryFilePath() (string, error) {
 	return home + TopLevelDir + HistoryFile, nil
 }
 
+// GetTopLevelDir returns full path to top level dir
+func GetTopLevelDir() (string, error) {
+	home, err := getHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return home + TopLevelDir, nil
+}
+
 func getHomeDir() (string, error) {
 	usr, err := user.Current()
 	if err != nil {

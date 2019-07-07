@@ -1,13 +1,15 @@
 package main
 
 import (
-	"github.com/jan25/termracer/server/client"
 	"errors"
 	"fmt"
-	"math"	
+	"io/ioutil"
+	"math"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/jan25/termracer/server/client"
 )
 
 // CreateFileIfNotExists creates file if not exists
@@ -89,6 +91,30 @@ func ChooseParagraph() (string, error) {
 	p, err := client.ChooseParagraph()
 	if err != nil {
 		Logger.Info("Error fetching paragraph from server " + err.Error())
+		Logger.Info("Falling back to default paragraph")
+		// TODO remove this temporary fix
+		// returning const paragraph if couldn't reach server
+		return firstParagraph, nil;
 	}
 	return p, nil
 }
+
+// GenerateLocalParagraphs checks if samples/use has > 0 paragraphs
+// available. If not tries to generate them
+func GenerateLocalParagraphs() error {
+	files, err := ioutil.ReadDir("server/samples/use")
+	if err != nil {
+		return errors.New("failed to read use directory")
+	}
+	if len(files) == 0 {
+		// TODO generate paragraphs if none available
+	}
+	return nil
+}
+
+const firstParagraph = `
+She sank more and more into uneasy delirium. At times she shuddered,
+turned her eyes from side to side, recognised everyone for a minute,
+but at once sank into delirium again. Her breathing was hoarse and
+difficult, there was a sort of rattle in her throat.
+`

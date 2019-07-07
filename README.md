@@ -1,5 +1,7 @@
 # termracer
-Practise your typing skills from within your terminal. This app is inspired by various online typing tutor websites.
+Practise your typing skills from within your terminal. termracer is inspired by various online typing tutor websites.
+
+Your goal is to type a given paragraph as fast and accurate as possible, termracer will calculate your typing speed with words per minute and accuracy % metrics. You can also view your progress by viewing the past race results.
 
 ![](https://github.com/jan25/termracer/blob/master/example.gif)
 

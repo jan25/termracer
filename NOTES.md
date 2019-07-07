@@ -69,15 +69,18 @@
         - Used to show help text that displays the ui controls
         - Ctrl+x can expand/collapse this view
         
-
+- Data directory
+    - All data related to termracer is put under $HOME/termracer
+    - This directory contains
+        - samples
+        - log file
+        - racehistory file
         
 TODO
 - Known issues
-    - Fix NaN Accuracy
-    - Remove cursor from word view when race finished
-    
-- Write/Read stats to local file
-- Convert stats table into widget so we can scroll through historical stats
+    - Only one paragraph support on master build
+    - Need to get rid of server and generate paragraphs on the fly    
+
 - need to arrange words properly in para view. algorithm to adjust spacing? just look for library
 - How about a dashboard to submit book urls to generate samples?
 

@@ -94,7 +94,7 @@ func ChooseParagraph() (string, error) {
 		Logger.Info("Falling back to default paragraph")
 		// TODO remove this temporary fix
 		// returning const paragraph if couldn't reach server
-		return firstParagraph, nil;
+		return firstParagraph, nil
 	}
 	return p, nil
 }
@@ -102,7 +102,8 @@ func ChooseParagraph() (string, error) {
 // GenerateLocalParagraphs checks if samples/use has > 0 paragraphs
 // available. If not tries to generate them
 func GenerateLocalParagraphs() error {
-	files, err := ioutil.ReadDir("server/samples/use")
+	d, _ := GetSamplesUseDir()
+	files, err := ioutil.ReadDir(d)
 	if err != nil {
 		return errors.New("failed to read use directory")
 	}

@@ -1,7 +1,25 @@
 # termracer
-Practise your typing skills from within your terminal. This app is inspired by various online typing tutor websites.
+Practise your typing skills from within your terminal. termracer is inspired by various online typing tutor websites.
 
-This application is very much in development. I'll update this README according to when this app is ready to be used.
+Your goal is to type a given paragraph as fast and accurate as possible, termracer will calculate your typing speed with words per minute and accuracy % metrics. You can also view your progress by viewing the past race results.
+
+![](https://github.com/jan25/termracer/blob/master/example.gif)
+
+## Install
+
+```
+# download and install
+$ go get -u github.com/jan25/termracer
+
+# run application
+# if $GOPATH/bin is in $PATH
+$ termracer
+
+# OR
+$ $GOPATH/bin/termracer
+```
+
+> Current version of termracer can't generate paragraphs and pick an interesting paragraph for a race. We only have one default paragraph that is used for all races. In upcoming versions, termracer will be able to choose a random and interesting paragraphs for you.
 
 ## Development
 This application uses go modules. So, you could clone this repo under any

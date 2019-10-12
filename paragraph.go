@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jan25/color"
 	"github.com/jan25/gocui"
 )
 
@@ -111,25 +112,34 @@ func (p *Paragraph) DrawView(v *gocui.View) {
 
 	for i, w := range p.words {
 		highlight := false
-		if i == p.wordi {
+		done := false
+		if i < p.wordi {
+			done = true
+		} else if i == p.wordi {
 			highlight = true
 		}
 
-		p.printWord(v, w, highlight)
+		p.printWord(v, w, highlight, done)
 	}
 }
 
-func (p *Paragraph) printWord(v *gocui.View, w string, highlight bool) {
-	f := "%s "
-	if highlight {
-		// Green bg
-		f = "\033[32;7m%s\033[0m "
+func (p *Paragraph) printWord(v *gocui.View, w string, highlight bool, done bool) {
+	f := "%s"
+	if done {
+		fg := color.New(color.FgGreen)
+		fg.Fprintf(v, f, w)
+	} else if highlight {
+		bg := color.New(color.BgGreen)
 		if p.Mistyped {
-			// Red/pink bg
-			f = "\033[31;7m%s\033[0m "
+			bg = color.New(color.BgRed)
 		}
+		bg.Add(color.Underline)
+		bg.Fprintf(v, f, w)
+	} else {
+		fmt.Fprintf(v, f, w)
 	}
-	fmt.Fprintf(v, f, w)
+	// Space between words in a paragraph
+	fmt.Fprint(v, " ")
 }
 
 func (p *Paragraph) getDoneCh() chan struct{} {

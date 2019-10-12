@@ -211,7 +211,8 @@ func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 
 	if len(s.stats.History) == 0 {
 		v.Wrap = true
-		fmt.Fprintf(v, "No races available to show")
+		cyan := color.New(color.FgCyan)
+		cyan.Fprintf(v, "No races available to show")
 		return
 	}
 

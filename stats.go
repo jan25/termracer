@@ -2,13 +2,14 @@ package main
 
 import (
 	"encoding/csv"
-	"os"
 	"errors"
 	"fmt"
-	"time"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/jan25/color"
 	"github.com/jan25/gocui"
 	"go.uber.org/zap"
 )
@@ -76,9 +77,9 @@ func (s *Stats) LoadHistory() error {
 			when, err := time.Parse("02/01/06", record[cmapper["when"]])
 
 			stat := &OneStat{
-				Wpm: wpm,
+				Wpm:      wpm,
 				Accuracy: acc,
-				When: when,
+				When:     when,
 			}
 			s.History = append(s.History, stat)
 		}
@@ -214,17 +215,22 @@ func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 		return
 	}
 
-	fmt.Fprintln(v, "\033[0;4mwpm acc. when    \033[0m")
+	// Heading
+	ul := color.New(color.Underline)
+	ul.Fprintln(v, "wpm acc. when    ")
 
 	selected := s.stats.Selected
 	for i := selected; i >= 0; i-- {
 		stat := s.stats.History[i]
 		f := "%s\n"
 		if i == s.stats.Selected {
-			f = "\033[0;7m%s\033[0m\n"
+			white := color.New(color.BgWhite)
+			white.Fprintf(v, f,
+				fmt.Sprintf("%-3d %3d%% %-8s", stat.Wpm, int(stat.Accuracy), FormatDate(stat.When)))
+		} else {
+			fmt.Fprintf(v, f,
+				fmt.Sprintf("%-3d %3d%% %-8s", stat.Wpm, int(stat.Accuracy), FormatDate(stat.When)))
 		}
-		fmt.Fprintf(v, f,
-			fmt.Sprintf("%-3d %3d%% %-8s", stat.Wpm, int(stat.Accuracy), FormatDate(stat.When)))
 	}
 }
 

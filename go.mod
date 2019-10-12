@@ -3,7 +3,7 @@ module github.com/jan25/termracer
 go 1.12
 
 require (
-	github.com/jan25/color v1.7.0 // indirect
+	github.com/jan25/color v1.7.0
 	github.com/jan25/gocui v0.4.0
 	github.com/jroimartin/gocui v0.4.0
 	github.com/mattn/go-colorable v0.1.4 // indirect

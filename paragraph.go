@@ -112,21 +112,28 @@ func (p *Paragraph) DrawView(v *gocui.View) {
 
 	for i, w := range p.words {
 		highlight := false
-		if i == p.wordi {
+		done := false
+		if i < p.wordi {
+			done = true
+		} else if i == p.wordi {
 			highlight = true
 		}
 
-		p.printWord(v, w, highlight)
+		p.printWord(v, w, highlight, done)
 	}
 }
 
-func (p *Paragraph) printWord(v *gocui.View, w string, highlight bool) {
+func (p *Paragraph) printWord(v *gocui.View, w string, highlight bool, done bool) {
 	f := "%s"
-	if highlight {
+	if done {
+		fg := color.New(color.FgGreen)
+		fg.Fprintf(v, f, w)
+	} else if highlight {
 		bg := color.New(color.BgGreen)
 		if p.Mistyped {
 			bg = color.New(color.BgRed)
 		}
+		bg.Add(color.Underline)
 		bg.Fprintf(v, f, w)
 	} else {
 		fmt.Fprintf(v, f, w)

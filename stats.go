@@ -267,8 +267,41 @@ func (s *StatsView) updateRaceStats(v *gocui.View) error {
 // StartRace starts the timer
 func (s *StatsView) StartRace() error {
 	err := s.timer.Start()
+	if err != nil {
+		// this is to fix pressing ctrlS multiple times
+		// which caused crashes when ending with ctrlE
+		// due to how timer.wg works
+		return err
+	}
+	go s.updateTimer(s.timer, g)
 	s.stats.InitNewStat()
 	return err
+}
+
+func (s *StatsView) updateTimer(t *Timer, g *gocui.Gui) {
+	defer t.wg.Done()
+
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-t.getDoneCh():
+			return
+		case <-ticker.C:
+			g.Update(func(g *gocui.Gui) error {
+				// TODO remove hardcoded view name
+				v, err := g.View("stats")
+				if err != nil {
+					return err
+				}
+				v.Clear()
+				elapsed, _ := t.ElapsedTime()
+				fmt.Fprintf(v, "%02d:%02d", elapsed.Mins, elapsed.Secs)
+				return nil
+			})
+		}
+	}
 }
 
 // StopRace stops the timer

@@ -137,11 +137,15 @@ func main() {
 }
 
 func ctrlS(g *gocui.Gui, v *gocui.View) error {
-	paragraph.Init()
-	word.Init()
-	stats.StartRace()
-	controls.RaceModeControls()
-
+	err := stats.StartRace()
+	if err == nil {
+		paragraph.Init()
+		word.Init()
+		controls.RaceModeControls()
+	}
+	// TODO ctrlS can be hit during the race
+	// Handle the err from stats gracefully
+	// Or disable these controls during race
 	return nil
 }
 

@@ -159,4 +159,6 @@ func (p *Paragraph) Reset() {
 	default:
 		close(p.getDoneCh())
 	}
+
+	p.Mistyped = false
 }

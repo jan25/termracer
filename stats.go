@@ -275,7 +275,7 @@ func (s *StatsView) StartRace() error {
 	}
 	go s.updateTimer(s.timer, g)
 	s.stats.InitNewStat()
-	return err
+	return nil
 }
 
 func (s *StatsView) updateTimer(t *Timer, g *gocui.Gui) {

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jan25/termracer/pkg/wordwrap"
 	"github.com/jan25/termracer/server/client"
 )
 
@@ -111,6 +112,25 @@ func GenerateLocalParagraphs() error {
 		// TODO generate paragraphs if none available
 	}
 	return nil
+}
+
+// AddNewLines adds new line char to certian words
+// to wrap and align the words into seperate lines
+func AddNewLines(words []string, width int) {
+	processed := []wordwrap.Word{}
+	for _, w := range words {
+		processed = append(processed, wordwrap.Word{
+			Len: len(w),
+		})
+	}
+
+	wordwrap.Wrap(processed, width)
+	for i, w := range processed {
+		if w.Wrap {
+			words[i] = words[i] + "\n"
+		}
+		Logger.Info(fmt.Sprint(words[i]))
+	}
 }
 
 const firstParagraph = `

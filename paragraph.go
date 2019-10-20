@@ -72,6 +72,10 @@ func (p *Paragraph) Init() {
 	}
 
 	p.words = strings.Fields(para)
+	for i, w := range p.words {
+		p.words[i] = strings.TrimSpace(w)
+	}
+	AddNewLines(p.words, p.w-1)
 	p.wordi = 0
 }
 
@@ -93,7 +97,11 @@ func (p *Paragraph) CountDoneWords() int {
 
 // CurrentWord returns target word to type
 func (p *Paragraph) CurrentWord() string {
-	return p.words[p.wordi]
+	w := p.words[p.wordi]
+	if strings.HasSuffix(w, "\n") {
+		return strings.TrimRight(w, "\n")
+	}
+	return w
 }
 
 // CharsUptoCurrent counts chars in words
@@ -138,8 +146,14 @@ func (p *Paragraph) printWord(v *gocui.View, w string, highlight bool, done bool
 	} else {
 		fmt.Fprintf(v, f, w)
 	}
-	// Space between words in a paragraph
-	fmt.Fprint(v, " ")
+	p.addSpaceIfNeeded(v, w)
+}
+
+func (p *Paragraph) addSpaceIfNeeded(v *gocui.View, word string) {
+	if !strings.HasSuffix(word, "\n") {
+		// Space between words in a paragraph
+		fmt.Fprint(v, " ")
+	}
 }
 
 func (p *Paragraph) getDoneCh() chan struct{} {

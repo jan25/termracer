@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/pkg/utils"
 	"go.uber.org/zap"
 )
 
@@ -74,7 +75,7 @@ func ensureDataDirs() error {
 	if err != nil {
 		return err
 	}
-	if err := CreateDirIfNotExists(s); err != nil {
+	if err := utils.CreateDirIfNotExists(s); err != nil {
 		return err
 	}
 	if err := GenerateLocalParagraphs(); err != nil {
@@ -86,7 +87,7 @@ func ensureDataDirs() error {
 	if err != nil {
 		return err
 	}
-	if err := CreateFileIfNotExists(rh); err != nil {
+	if err := utils.CreateFileIfNotExists(rh); err != nil {
 		return err
 	}
 

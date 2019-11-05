@@ -26,6 +26,15 @@ func GetSamplesUseDir() (string, error) {
 	return home + TopLevelDir + SamplesDir, nil
 }
 
+// GetSamplesFilePath returns absolute path to samples.json file
+func GetSamplesFilePath() (string, error) {
+	home, err := utils.GetHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return home + TopLevelDir + SamplesJSONPath, nil
+}
+
 // GetHistoryFilePath returns path to race history file
 func GetHistoryFilePath() (string, error) {
 	home, err := utils.GetHomeDir()

@@ -2,9 +2,11 @@ package db
 
 import (
 	"compress/gzip"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/jan25/termracer/pkg/utils"
 )
@@ -16,15 +18,36 @@ type Sample struct {
 
 // GetSamplesJSON returns the JSON file contents
 func GetSamplesJSON(fname string) ([]Sample, error) {
-	// TODO
-	return nil, nil
+	_, err := os.Stat(fname)
+	// create file if not exists
+	if err != nil && os.IsNotExist(err) {
+		if err = initSamples(fname); err != nil {
+			return nil, err
+		}
+	}
+
+	bytes, err := ioutil.ReadFile(fname)
+	if err != nil {
+		return nil, err
+	}
+
+	var samples []Sample
+	if err = json.Unmarshal(bytes, &samples); err != nil {
+		return nil, err
+	}
+
+	return samples, nil
 }
 
 // download file and store json file locally
 func initSamples(fname string) error {
-	url := "" // FIXME add URL
+	// FIXME add URL that would be good after merging MR
+	url := "https://github.com/jan25/termracer/blob/f5fad2102084b2f4cd8f9dcb618af6df2d9b9d84/data/samples.gz?raw=true"
 	bytes, err := DownloadGzipFile(url)
 	if err != nil {
+		return err
+	}
+	if err = utils.CreateFileIfNotExists(fname); err != nil {
 		return err
 	}
 	return utils.WriteToFile(fname, bytes)

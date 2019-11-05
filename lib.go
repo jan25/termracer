@@ -2,24 +2,36 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
+	"math/rand"
 
+	"github.com/jan25/termracer/db"
 	"github.com/jan25/termracer/pkg/wordwrap"
-	"github.com/jan25/termracer/server/client"
 )
 
 // ChooseParagraph calls the server to fetch a paragraph
 func ChooseParagraph() (string, error) {
-	p, err := client.ChooseParagraph()
+	samplesFname, err := GetSamplesFilePath()
 	if err != nil {
-		Logger.Info("Error fetching paragraph from server " + err.Error())
-		Logger.Info("Falling back to default paragraph")
-		// TODO remove this temporary fix
-		// returning const paragraph if couldn't reach server
-		return firstParagraph, nil
+		return fallbackToDefaultParagraph(err)
 	}
-	return p, nil
+	samples, err := db.GetSamplesJSON(samplesFname)
+	if err != nil {
+		return fallbackToDefaultParagraph(err)
+	}
+
+	ri := rand.Int() % len(samples)
+	p := samples[ri]
+	return p.Content, nil
+}
+
+// TODO clean this after we're sure fallback isn't necessary
+func fallbackToDefaultParagraph(err error) (string, error) {
+	Logger.Info("Error reading paragraph from local FS " + err.Error())
+	Logger.Info("Falling back to default paragraph")
+	// TODO do we need this?
+	// Make sure this won't happen
+	return firstParagraph, nil
 }
 
 // GenerateLocalParagraphs checks if samples/use has > 0 paragraphs
@@ -51,7 +63,6 @@ func AddNewLines(words []string, width int) {
 		if w.Wrap {
 			words[i] = words[i] + "\n"
 		}
-		Logger.Info(fmt.Sprint(words[i]))
 	}
 }
 

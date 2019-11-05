@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"io/ioutil"
 	"os"
 	"os/user"
 	"strings"
@@ -58,4 +59,10 @@ func AppendLineEOF(fname, line string) error {
 		return err
 	}
 	return nil
+}
+
+// WriteToFile writes to a file at a given path
+func WriteToFile(fpath string, data []byte) error {
+	err := ioutil.WriteFile(fpath, data, 0644)
+	return err
 }

@@ -9,10 +9,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 
 	"github.com/jan25/termracer/db"
+	"github.com/jan25/termracer/pkg/utils"
 )
 
 func main() {
@@ -27,24 +26,9 @@ func main() {
 
 func getAndSaveData() error {
 	url := "https://github.com/jan25/wpm/blob/master/wpm/data/examples.json.gz?raw=true"
-
-	client := new(http.Client)
-	request, err := http.NewRequest("GET", url, nil)
-	request.Header.Add("Accept-Encoding", "gzip")
-	resp, err := client.Do(request)
+	bytes, err := db.DownloadGzipFile(url)
 	if err != nil {
-		return errors.New("Failed to GET remote file. " + err.Error())
-	}
-	defer resp.Body.Close()
-
-	reader, err := gzip.NewReader(resp.Body)
-	if err != nil {
-		return errors.New("Failed to create gzip.NewReader. " + err.Error())
-	}
-	defer reader.Close()
-	bytes, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return errors.New("Failed to read response to bytes. " + err.Error())
+		return errors.New("Failed to download gzip file. " + err.Error())
 	}
 
 	var parsed [][]interface{}
@@ -71,11 +55,7 @@ func saveData(data []db.Sample) error {
 		return nil
 	}
 
-	err = ioutil.WriteFile(
-		"./samples.gz",
-		bytes,
-		0644,
-	)
+	err = utils.WriteToFile("./samples.gz", bytes)
 	return err
 }
 

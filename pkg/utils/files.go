@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"os/user"
+	"strings"
 )
 
 // GetHomeDir returns absolute path to Home directory
@@ -36,6 +37,25 @@ func CreateDirIfNotExists(dpath string) error {
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// AppendLineEOF appends a given line to end of a file
+func AppendLineEOF(fname, line string) error {
+	f, err := os.OpenFile(fname, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// Add new line if not provided as part of line
+	if !strings.HasSuffix(line, "\n") {
+		line += "\n"
+	}
+
+	if _, err := f.Write([]byte(line)); err != nil {
+		return err
 	}
 	return nil
 }

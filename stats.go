@@ -11,6 +11,7 @@ import (
 
 	"github.com/jan25/color"
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/pkg/utils"
 	"go.uber.org/zap"
 )
 
@@ -52,7 +53,7 @@ func (s *Stats) LoadHistory() error {
 	if len(records) == 0 {
 		// Append column names as first line
 		// to handle the case of newly created file
-		AppendLineEOF(fname, "wpm,acc,when")
+		utils.AppendLineEOF(fname, "wpm,acc,when")
 	}
 	for i, record := range records {
 		if i == 0 {
@@ -122,10 +123,10 @@ func (s *Stats) FinishCurrent() error {
 // AppendToFile appends last finished race to
 // localstorage file
 func (s *Stats) AppendToFile(stat *OneStat) error {
-	line := fmt.Sprintf("%d,%f,%s", stat.Wpm, stat.Accuracy, FormatDate(stat.When))
+	line := fmt.Sprintf("%d,%f,%s", stat.Wpm, stat.Accuracy, utils.FormatDate(stat.When))
 	f, _ := GetHistoryFilePath()
-	if err := AppendLineEOF(f, line); err != nil {
-		Logger.Warn("Failed to append to file")
+	if err := utils.AppendLineEOF(f, line); err != nil {
+		Logger.Warn("Failed to append to file", zap.Error(err))
 		return err
 	}
 	Logger.Info("Successfuly appended to file")
@@ -227,10 +228,10 @@ func (s *StatsView) showRecentRaceStats(v *gocui.View) {
 		if i == s.stats.Selected {
 			white := color.New(color.BgWhite)
 			white.Fprintf(v, f,
-				fmt.Sprintf("%-3d %3d%% %-8s", stat.Wpm, int(stat.Accuracy), FormatDate(stat.When)))
+				fmt.Sprintf("%-3d %3d%% %-8s", stat.Wpm, int(stat.Accuracy), utils.FormatDate(stat.When)))
 		} else {
 			fmt.Fprintf(v, f,
-				fmt.Sprintf("%-3d %3d%% %-8s", stat.Wpm, int(stat.Accuracy), FormatDate(stat.When)))
+				fmt.Sprintf("%-3d %3d%% %-8s", stat.Wpm, int(stat.Accuracy), utils.FormatDate(stat.When)))
 		}
 	}
 }
@@ -243,11 +244,11 @@ func (s *StatsView) updateRaceStats(v *gocui.View) error {
 
 	secs := elapsedTime.Mins*60 + elapsedTime.Secs
 	if secs != 0 {
-		s.stats.Current.Wpm = CalculateWpm(paragraph.CountDoneWords(), secs)
+		s.stats.Current.Wpm = utils.CalculateWpm(paragraph.CountDoneWords(), secs)
 	} else {
 		s.stats.Current.Wpm = 0
 	}
-	a, err := CalculateAccuracy(paragraph.CharsUptoCurrent(), word.Mistyped)
+	a, err := utils.CalculateAccuracy(paragraph.CharsUptoCurrent(), word.Mistyped)
 	// Only update accuracy if we were able to calculate it
 	// This is to handle 0 chars types at start of race
 	if err == nil {

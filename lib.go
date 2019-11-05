@@ -13,32 +13,6 @@ import (
 	"github.com/jan25/termracer/server/client"
 )
 
-// CreateFileIfNotExists creates file if not exists
-func CreateFileIfNotExists(fname string) error {
-	var _, err = os.Stat(fname)
-	// create log file if not exists
-	if err != nil && os.IsNotExist(err) {
-		file, err := os.Create(fname)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-	}
-	return nil
-}
-
-// CreateDirIfNotExists creates directory path if not exists
-func CreateDirIfNotExists(dpath string) error {
-	var _, err = os.Stat(dpath)
-	if err != nil && os.IsNotExist(err) {
-		err := os.MkdirAll(dpath, os.ModePerm)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // AppendLineEOF appends a given line to end of a file
 func AppendLineEOF(fname, line string) error {
 	f, err := os.OpenFile(fname, os.O_APPEND|os.O_WRONLY, 0600)

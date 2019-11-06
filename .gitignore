@@ -7,8 +7,8 @@ build
 # local samples
 **/samples
 
-# logs
-logs
+# debug logs
+app.log
 
 # Local filestorage
 racehistory.csv

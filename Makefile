@@ -11,22 +11,24 @@ all: test build
 build: 
 	$(GOBUILD) -o $(BINARY_NAME) -v
 
+build-linux:
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
+
 # run all test in this project
 # ./... looks for root, subdirectories in this project
 test: 
 	$(GOTEST) ./... -v
 
-clean: 
+run: build
+	./$(BINARY_NAME)
+
+debug: build
+	./$(BINARY_NAME) -debug=true
+
+clean:
 	$(GOCLEAN)
 	rm -f $(BINARY_NAME)
 	rm -f $(BINARY_UNIX)
-
-run:
-	$(GOBUILD) -o $(BINARY_NAME) -v
-	./$(BINARY_NAME)
-
-build-linux:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
 
 # docker-build:
 # TODO

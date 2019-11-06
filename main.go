@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"path/filepath"
@@ -95,6 +96,12 @@ func ensureDataDirs() error {
 }
 
 func main() {
+	// Flags
+	debugFlag := flag.Bool("debug", false, "flag for debug mode")
+
+	flag.Parse()
+	debug := *debugFlag
+
 	if err := ensureDataDirs(); err != nil {
 		log.Panicln(err)
 	}
@@ -131,6 +138,13 @@ func main() {
 		log.Panicln(err)
 	}
 
+	if debug {
+		if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, advanceWord); err != nil {
+			log.Panicln(err) // FIXME This will crash the app at end of paragraph
+		}
+		// Other debug options
+	}
+
 	Logger.Info("Starting main loop...")
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
@@ -162,4 +176,9 @@ func ctrlE(g *gocui.Gui, v *gocui.View) error {
 func quit(g *gocui.Gui, v *gocui.View) error {
 	Logger.Info("Quitting termracer..")
 	return gocui.ErrQuit
+}
+
+// For debugging in the UI
+func advanceWord(g *gocui.Gui, v *gocui.View) error {
+	return paragraph.Advance()
 }

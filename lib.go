@@ -52,7 +52,7 @@ func GenerateLocalParagraphs() error {
 
 // AddNewLines adds new line char to certian words
 // to wrap and align the words into seperate lines
-func AddNewLines(words []string, width int) {
+func AddNewLines(words []string, width int) int {
 	processed := []wordwrap.Word{}
 	for _, w := range words {
 		processed = append(processed, wordwrap.Word{
@@ -61,11 +61,14 @@ func AddNewLines(words []string, width int) {
 	}
 
 	wordwrap.Wrap(processed, width)
+	lines := 1
 	for i, w := range processed {
 		if w.Wrap {
 			words[i] = words[i] + "\n"
+			lines++
 		}
 	}
+	return lines
 }
 
 const firstParagraph = `

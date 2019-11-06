@@ -5,7 +5,7 @@ termracer
 build
 
 # local samples
-examples
+**/samples
 
 # logs
 logs

@@ -1,9 +1,8 @@
 package main
 
 import (
-	"errors"
-	"io/ioutil"
 	"math/rand"
+	"os"
 
 	"github.com/jan25/termracer/db"
 	"github.com/jan25/termracer/pkg/wordwrap"
@@ -37,14 +36,19 @@ func fallbackToDefaultParagraph(err error) (string, error) {
 // GenerateLocalParagraphs checks if samples/use has > 0 paragraphs
 // available. If not tries to generate them
 func GenerateLocalParagraphs() error {
-	d, _ := GetSamplesUseDir()
-	files, err := ioutil.ReadDir(d)
+	// TODO Add Loading... thingy before opening UI
+	samplesFname, err := GetSamplesFilePath()
 	if err != nil {
-		return errors.New("failed to read use directory")
+		return err
 	}
-	if len(files) == 0 {
-		// TODO generate paragraphs if none available
+
+	_, err = os.Stat(samplesFname)
+	if err != nil && os.IsNotExist(err) {
+		err = db.DownloadSamplesToLocalFS(samplesFname)
+		return err
 	}
+
+	// We already have the file generated
 	return nil
 }
 

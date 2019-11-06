@@ -19,11 +19,8 @@ type Sample struct {
 // GetSamplesJSON returns the JSON file contents
 func GetSamplesJSON(fname string) ([]Sample, error) {
 	_, err := os.Stat(fname)
-	// create file if not exists
 	if err != nil && os.IsNotExist(err) {
-		if err = initSamples(fname); err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	bytes, err := ioutil.ReadFile(fname)
@@ -39,8 +36,8 @@ func GetSamplesJSON(fname string) ([]Sample, error) {
 	return samples, nil
 }
 
-// download file and store json file locally
-func initSamples(fname string) error {
+// DownloadSamplesToLocalFS downloads stores samples.json file locally
+func DownloadSamplesToLocalFS(fname string) error {
 	// FIXME add URL that would be good after merging MR
 	url := "https://github.com/jan25/termracer/blob/f5fad2102084b2f4cd8f9dcb618af6df2d9b9d84/data/samples.gz?raw=true"
 	bytes, err := DownloadGzipFile(url)

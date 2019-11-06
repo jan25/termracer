@@ -38,8 +38,7 @@ func GetSamplesJSON(fname string) ([]Sample, error) {
 
 // DownloadSamplesToLocalFS downloads stores samples.json file locally
 func DownloadSamplesToLocalFS(fname string) error {
-	// FIXME add URL that would be good after merging MR
-	url := "https://github.com/jan25/termracer/blob/f5fad2102084b2f4cd8f9dcb618af6df2d9b9d84/data/samples.gz?raw=true"
+	url := "https://github.com/jan25/termracer/raw/master/data/samples.gz"
 	bytes, err := DownloadGzipFile(url)
 	if err != nil {
 		return err

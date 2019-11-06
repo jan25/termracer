@@ -28,8 +28,6 @@ func ChooseParagraph() (string, error) {
 func fallbackToDefaultParagraph(err error) (string, error) {
 	Logger.Info("Error reading paragraph from local FS " + err.Error())
 	Logger.Info("Falling back to default paragraph")
-	// TODO do we need this?
-	// Make sure this won't happen
 	return firstParagraph, nil
 }
 

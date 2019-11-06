@@ -5,10 +5,10 @@ termracer
 build
 
 # local samples
-examples
+**/samples
 
-# logs
-logs
+# debug logs
+app.log
 
 # Local filestorage
 racehistory.csv

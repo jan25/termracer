@@ -1,9 +1,8 @@
 package main
 
 import (
+	"flag"
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/pkg/utils"
@@ -38,28 +37,17 @@ var (
 	pad        = 1
 )
 
-func initLogger() error {
-	cfg := zap.NewProductionConfig()
-	d, _ := GetTopLevelDir()
-	path := d + "/logs/app.log"
-
-	// create logs directory if not exists
-	dirName := filepath.Dir(path)
-	if _, serr := os.Stat(dirName); serr != nil {
-		merr := os.MkdirAll(dirName, os.ModePerm)
-		if merr != nil {
-			return merr
-		}
+func initLogger(debug bool) error {
+	if !debug {
+		Logger = zap.New(nil) // no-op logger
+		return nil
 	}
 
-	var _, err = os.Stat(path)
-	// create log file if not exists
-	if os.IsNotExist(err) {
-		file, err := os.Create(path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
+	cfg := zap.NewProductionConfig()
+	path := "./app.log"
+
+	if err := utils.CreateFileIfNotExists(path); err != nil {
+		return err
 	}
 
 	cfg.OutputPaths = []string{path}
@@ -95,10 +83,16 @@ func ensureDataDirs() error {
 }
 
 func main() {
+	// Flags
+	debugFlag := flag.Bool("debug", false, "flag for debug mode")
+
+	flag.Parse()
+	debug := *debugFlag
+
 	if err := ensureDataDirs(); err != nil {
 		log.Panicln(err)
 	}
-	if err := initLogger(); err != nil {
+	if err := initLogger(debug); err != nil {
 		log.Panicln(err)
 	}
 	defer Logger.Sync()
@@ -129,6 +123,13 @@ func main() {
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlE, gocui.ModNone, ctrlE); err != nil {
 		log.Panicln(err)
+	}
+
+	if debug {
+		if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, advanceWord); err != nil {
+			log.Panicln(err) // FIXME This will crash the app at end of paragraph
+		}
+		// Other debug options
 	}
 
 	Logger.Info("Starting main loop...")
@@ -162,4 +163,9 @@ func ctrlE(g *gocui.Gui, v *gocui.View) error {
 func quit(g *gocui.Gui, v *gocui.View) error {
 	Logger.Info("Quitting termracer..")
 	return gocui.ErrQuit
+}
+
+// For debugging in the UI
+func advanceWord(g *gocui.Gui, v *gocui.View) error {
+	return paragraph.Advance()
 }

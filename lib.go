@@ -1,9 +1,8 @@
 package main
 
 import (
-	"errors"
-	"io/ioutil"
 	"math/rand"
+	"os"
 
 	"github.com/jan25/termracer/db"
 	"github.com/jan25/termracer/pkg/wordwrap"
@@ -29,28 +28,31 @@ func ChooseParagraph() (string, error) {
 func fallbackToDefaultParagraph(err error) (string, error) {
 	Logger.Info("Error reading paragraph from local FS " + err.Error())
 	Logger.Info("Falling back to default paragraph")
-	// TODO do we need this?
-	// Make sure this won't happen
 	return firstParagraph, nil
 }
 
 // GenerateLocalParagraphs checks if samples/use has > 0 paragraphs
 // available. If not tries to generate them
 func GenerateLocalParagraphs() error {
-	d, _ := GetSamplesUseDir()
-	files, err := ioutil.ReadDir(d)
+	// TODO Add Loading... thingy before opening UI
+	samplesFname, err := GetSamplesFilePath()
 	if err != nil {
-		return errors.New("failed to read use directory")
+		return err
 	}
-	if len(files) == 0 {
-		// TODO generate paragraphs if none available
+
+	_, err = os.Stat(samplesFname)
+	if err != nil && os.IsNotExist(err) {
+		err = db.DownloadSamplesToLocalFS(samplesFname)
+		return err
 	}
+
+	// We already have the file generated
 	return nil
 }
 
 // AddNewLines adds new line char to certian words
 // to wrap and align the words into seperate lines
-func AddNewLines(words []string, width int) {
+func AddNewLines(words []string, width int) int {
 	processed := []wordwrap.Word{}
 	for _, w := range words {
 		processed = append(processed, wordwrap.Word{
@@ -59,11 +61,14 @@ func AddNewLines(words []string, width int) {
 	}
 
 	wordwrap.Wrap(processed, width)
+	lines := 1
 	for i, w := range processed {
 		if w.Wrap {
 			words[i] = words[i] + "\n"
+			lines++
 		}
 	}
+	return lines
 }
 
 const firstParagraph = `

@@ -24,15 +24,26 @@ type Paragraph struct {
 	words []string
 	// index of current word being typed
 	wordi int
+	// position values of view
+	pos ViewPosition
 	// whether current word is mistyped
 	Mistyped bool
+	// count of lines for a paragraph sample
+	lineCount int
+}
+
+// ViewPosition keeps track of top left Origin of View
+// and also line, word number of highlighted word
+type ViewPosition struct {
+	// Y position of View origin
+	Oy int
+
+	// For highlighted word: Line, Word number both start at 0
+	Line int
+	Word int
 }
 
 func newParagraph(name string, x, y int, w, h int) *Paragraph {
-	// split into words at whitespace characters
-	// words := strings.Fields(paragraph)
-
-	// view.Wrap = true
 	return &Paragraph{
 		name: name,
 		x:    x,
@@ -48,7 +59,6 @@ func (p *Paragraph) Layout(g *gocui.Gui) error {
 	if err != nil && err != gocui.ErrUnknownView {
 		return err
 	}
-	v.Wrap = true
 
 	select {
 	case <-p.getDoneCh():
@@ -75,8 +85,15 @@ func (p *Paragraph) Init() {
 	for i, w := range p.words {
 		p.words[i] = strings.TrimSpace(w)
 	}
-	AddNewLines(p.words, p.w-1)
+
+	n := AddNewLines(p.words, p.w-1)
+	p.lineCount = n
 	p.wordi = 0
+	p.pos = ViewPosition{
+		Oy:   0,
+		Line: 0,
+		Word: 0,
+	}
 }
 
 // Advance moves target word to next word
@@ -86,6 +103,18 @@ func (p *Paragraph) Advance() error {
 	}
 
 	p.wordi++
+
+	// Scroll logic
+	prevWord := p.words[p.wordi-1]
+	if strings.HasSuffix(prevWord, "\n") {
+		// Jump to next line
+		p.pos.Line++
+		p.pos.Word = 0
+	} else {
+		p.pos.Word++
+	}
+	p.makeScroll()
+
 	return nil
 }
 
@@ -118,6 +147,8 @@ func (p *Paragraph) CharsUptoCurrent() int {
 func (p *Paragraph) DrawView(v *gocui.View) {
 	v.Clear()
 
+	v.SetOrigin(0, p.pos.Oy) // scroll
+
 	for i, w := range p.words {
 		highlight := false
 		done := false
@@ -146,13 +177,24 @@ func (p *Paragraph) printWord(v *gocui.View, w string, highlight bool, done bool
 	} else {
 		fmt.Fprintf(v, f, w)
 	}
-	p.addSpaceIfNeeded(v, w)
-}
 
-func (p *Paragraph) addSpaceIfNeeded(v *gocui.View, word string) {
-	if !strings.HasSuffix(word, "\n") {
+	if !strings.HasSuffix(w, "\n") {
 		// Space between words in a paragraph
 		fmt.Fprint(v, " ")
+	}
+}
+
+func (p *Paragraph) makeScroll() {
+	atLinesLeft := 2
+	atWord, atLine := 2, (p.h-1)-atLinesLeft
+
+	if p.pos.Word != atWord {
+		return
+	}
+	currLine := p.pos.Line - p.pos.Oy
+	linesLeft := (p.lineCount - 1) - p.pos.Line
+	if currLine == atLine && linesLeft >= atLinesLeft {
+		p.pos.Oy++
 	}
 }
 

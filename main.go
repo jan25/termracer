@@ -37,51 +37,6 @@ var (
 	pad        = 1
 )
 
-func initLogger(debug bool) error {
-	if !debug {
-		Logger = zap.New(nil) // no-op logger
-		return nil
-	}
-
-	cfg := zap.NewProductionConfig()
-	path := "./app.log"
-
-	if err := utils.CreateFileIfNotExists(path); err != nil {
-		return err
-	}
-
-	cfg.OutputPaths = []string{path}
-	Logger, _ = cfg.Build()
-	return nil
-}
-
-// checks to see data dirs required for application are present
-// creates dirs/files if not present
-func ensureDataDirs() error {
-	// ensure samples use directory
-	s, err := GetSamplesUseDir()
-	if err != nil {
-		return err
-	}
-	if err := utils.CreateDirIfNotExists(s); err != nil {
-		return err
-	}
-	if err := GenerateLocalParagraphs(); err != nil {
-		return err
-	}
-
-	// ensure racehistory file
-	rh, err := GetHistoryFilePath()
-	if err != nil {
-		return err
-	}
-	if err := utils.CreateFileIfNotExists(rh); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func main() {
 	// Flags
 	debugFlag := flag.Bool("debug", false, "flag for debug mode")
@@ -89,10 +44,14 @@ func main() {
 	flag.Parse()
 	debug := *debugFlag
 
+	var err error
 	if err := ensureDataDirs(); err != nil {
 		log.Panicln(err)
 	}
-	if err := initLogger(debug); err != nil {
+
+	// Setup logger
+	Logger, err = utils.InitLogger("./app.log", debug)
+	if err != nil {
 		log.Panicln(err)
 	}
 	defer Logger.Sync()
@@ -111,7 +70,8 @@ func main() {
 
 	g.SetManager(paragraph, word, stats, controls)
 
-	stats.InitKeyBindings(g)
+	// Default key bindings on startup
+	stats.SetKeyBindings(g)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
@@ -132,7 +92,7 @@ func main() {
 		// Other debug options
 	}
 
-	Logger.Info("Starting main loop...")
+	Logger.Info("Starting main loop..")
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}

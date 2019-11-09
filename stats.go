@@ -315,12 +315,17 @@ func (s *StatsView) StopRace(finished bool) error {
 	return err
 }
 
-// InitKeyBindings adds keybindings to scroll in stats history
-func (s *StatsView) InitKeyBindings(g *gocui.Gui) {
+// SetKeyBindings adds keybindings to scroll in stats history
+func (s *StatsView) SetKeyBindings(g *gocui.Gui) {
 	if err := g.SetKeybinding(s.name, gocui.KeyCtrlJ, gocui.ModNone, s.stats.ScrollUp); err != nil {
 		Logger.Warn(fmt.Sprintf("%v", err))
 	}
 	if err := g.SetKeybinding(s.name, gocui.KeyCtrlK, gocui.ModNone, s.stats.ScrollDown); err != nil {
 		Logger.Warn(fmt.Sprintf("%v", err))
 	}
+}
+
+// UnsetKeyBindings deletes keybindigns when this view is active
+func (s *StatsView) UnsetKeyBindings(g *gocui.Gui) {
+	g.DeleteKeybindings(s.name)
 }

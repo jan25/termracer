@@ -39,22 +39,21 @@ var (
 
 func main() {
 	// Flags
-	debugFlag := flag.Bool("debug", false, "flag for debug mode")
-
 	flag.Parse()
-	debug := *debugFlag
-
-	var err error
-	if err := ensureDataDirs(); err != nil {
-		log.Panicln(err)
-	}
+	debug := *flag.Bool("debug", false, "flag for debug mode")
 
 	// Setup logger
+	var err error
 	Logger, err = utils.InitLogger("./app.log", debug)
 	if err != nil {
 		log.Panicln(err)
 	}
 	defer Logger.Sync()
+
+	// Ensure the required data files on local FS are present
+	if err := ensureDataDirs(); err != nil {
+		log.Panicln(err)
+	}
 
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {

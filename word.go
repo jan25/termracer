@@ -144,7 +144,8 @@ func handleSpace(v *gocui.View) {
 			paragraph.Reset()
 			word.Reset()
 			stats.StopRace(true)
-			controls.DefaultControls()
+			controls.DefaultControlsContent()
+			AfterRaceControls(g, false) // FIXME do not use global Gui ref
 		}
 	} else {
 		// TODO Should we count mistyped space as mistake?

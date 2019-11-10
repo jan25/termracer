@@ -44,15 +44,15 @@ func (c *Controls) Layout(g *gocui.Gui) error {
 	return nil
 }
 
-// RaceModeControls sets up controls
+// RaceModeControlsContent sets up controls
 // for during a race
-func (c *Controls) RaceModeControls() {
+func (c *Controls) RaceModeControlsContent() {
 	c.content = raceModeContent
 }
 
-// DefaultControls sets up controls
+// DefaultControlsContent sets up controls
 // when no race in progress
-func (c *Controls) DefaultControls() {
+func (c *Controls) DefaultControlsContent() {
 	c.content = defaultContent
 }
 

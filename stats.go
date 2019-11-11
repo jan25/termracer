@@ -245,9 +245,7 @@ func (s *StatsView) updateRaceStats(v *gocui.View) error {
 func (s *StatsView) StartRace() error {
 	err := s.timer.Start()
 	if err != nil {
-		// this is to fix pressing ctrlS multiple times
-		// which caused crashes when ending with ctrlE
-		// due to how timer.wg works
+		// FIXME log this error
 		return err
 	}
 	go s.updateTimer(s.timer, g)

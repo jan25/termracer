@@ -2,6 +2,8 @@ package viewdata
 
 import "errors"
 
+// StatsData represents contents show during a race
+// in stats view
 type StatsData struct {
 	// Count of In/Correctly typed chars
 	correct   int
@@ -14,10 +16,13 @@ type StatsData struct {
 	done chan struct{}
 }
 
+// StatMsg is used to communicate
+// with wordeditor
 type StatMsg struct {
 	IsMistyped bool
 }
 
+// NewStatsData creates new instance of StatsData
 func NewStatsData(m *chan StatMsg) *StatsData {
 	return &StatsData{
 		correct:   0,
@@ -26,6 +31,7 @@ func NewStatsData(m *chan StatMsg) *StatsData {
 	}
 }
 
+// Start is called on new race start
 func (sd *StatsData) Start() error {
 	if sd.m == nil {
 		return errors.New("stream channel is nil")
@@ -37,6 +43,7 @@ func (sd *StatsData) Start() error {
 	return nil
 }
 
+// Finish is called at end of a race
 func (sd *StatsData) Finish() error {
 	select {
 	case <-sd.getDoneCh():

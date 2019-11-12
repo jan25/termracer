@@ -1,5 +1,7 @@
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
+github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/jan25/color v1.7.0 h1:F3C3q7JEoN76cwVA3kbUCY/Hfr7sG53nbHyXbdVCuyE=
 github.com/jan25/color v1.7.0/go.mod h1:2LbQOIeQXaoG705OGfohDhD29I7IkMK+NMKN/MhipT4=
 github.com/jan25/gocui v0.4.0 h1:vohvvADSbpdy3QFkXXKieiMeAX+QXToeTHXcmr8YLxQ=

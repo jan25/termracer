@@ -2,7 +2,6 @@ package viewdata
 
 import (
 	"errors"
-	"strings"
 )
 
 // ParagraphData keeps track of state, data
@@ -13,7 +12,7 @@ type ParagraphData struct {
 	// index of target word - 0 based
 	wordi int
 	// whether target word is mistyped
-	mistyped bool
+	Mistyped bool
 
 	// line count in target paragraph
 	lineCount int
@@ -21,48 +20,78 @@ type ParagraphData struct {
 	// For highlighted word; Line, Word number both start at 0
 	Line int
 	Word int
+
+	// Channels to communicate with wordeditor
+	sender   chan WordValidateMsg
+	receiver chan WordValidateMsg
+
+	done chan struct{}
 }
 
-// Words returns the array of words in target paragraph
-func (pd *ParagraphData) Words() []string {
-	return pd.words
+// NewParagraphData creates instance of ParagraphData
+func NewParagraphData(sender, receiver *chan WordValidateMsg) *ParagraphData {
+	return &ParagraphData{
+		words:     getTargetWords(),
+		wordi:     0,
+		Mistyped:  false,
+		lineCount: 0, // FIXME
+		Line:      0,
+		Word:      0,
+		sender:    *sender,
+		receiver:  *receiver,
+	}
 }
 
-// TargetWordIndex returns index of target word in paragraph
-func (pd *ParagraphData) TargetWordIndex() int {
-	return pd.wordi
+func getTargetWords() []string {
+	// TODO choose paragraph and do some work
+	return nil
 }
 
-// IsMistyped tells if target word is being mistyped
-func (pd *ParagraphData) IsMistyped() bool {
-	return pd.mistyped
-}
-
-// LineCount returns count of lines shown in the view
-func (pd *ParagraphData) LineCount() int {
-	return pd.lineCount
-}
-
-// Advance moves target word to next word
-func (pd *ParagraphData) Advance() error {
-	if pd.wordi >= len(pd.words)-1 {
-		return errors.New("can not advance beyond number of words")
+// Start is called when a race starts
+func (pd *ParagraphData) Start() error {
+	if pd.sender == nil || pd.receiver == nil {
+		return errors.New("sender or receiver is nil")
 	}
 
-	pd.wordi++
-
-	// Scroll logic
-	prevWord := pd.words[pd.wordi-1]
-	if strings.HasSuffix(prevWord, "\n") {
-		// Jump to next line
-		pd.Line++
-		pd.Word = 0
-	} else {
-		pd.Word++
-	}
-
-	// FIXME Put below this inside views/paragraph
-	// p.makeScroll()
+	go pd.talkWithWordEditor()
 
 	return nil
+}
+
+// Finish is called to finish a race
+func (pd *ParagraphData) Finish() error {
+	select {
+	case <-pd.getDoneCh():
+		return errors.New("race already stopped")
+	default:
+		close(pd.getDoneCh())
+	}
+
+	return nil
+}
+
+func (pd *ParagraphData) talkWithWordEditor() {
+	defer close(pd.receiver)
+
+	for {
+		select {
+		case <-pd.getDoneCh():
+			return
+		default:
+			msg := <-pd.receiver
+			pd.validateTypedWord(msg)
+		}
+	}
+}
+
+func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
+	// TODO validate word and update state
+	// send required information into ->sender
+}
+
+func (pd *ParagraphData) getDoneCh() chan struct{} {
+	if pd.done == nil {
+		pd.done = make(chan struct{})
+	}
+	return pd.done
 }

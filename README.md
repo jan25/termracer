@@ -34,20 +34,13 @@ $ make test
 
 # Builds and runs executable
 $ make run
+
+# Run in debug mode
+$ make debug
 ```
 
-The paragraph for a race is served by a backend server which is under `/server` directory. Server can be started indepedently using either docker cli or docker-compose.
-```
-# Build and run using Docker cli
-$ docker build -t termracer-server
-$ docker run --rm -d termracer-server
-
-# OR
-
-# Use docker compose to bootup server
-$ docker-compose up -d
-# To stop server
-$ docker-compose down
-```
+## Note: The current master is in one single main package with global shared variables. So in-order to 
+## seperate concerns the project is in rewrite period, so at end of it we'll have components seperated into
+## nicer modules/packages. Expect the finished rewrite milestone 0.2.0-alpha scheduled on 01-12-2019 CEST
 
 The design/features are written in [NOTES.md](https://github.com/jan25/termracer/blob/master/NOTES.md).

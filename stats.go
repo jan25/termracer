@@ -133,30 +133,6 @@ func (s *Stats) AppendToFile(stat *OneStat) error {
 	return nil
 }
 
-// ScrollDown is a keybinding
-// increments selected stat index
-func (s *Stats) ScrollDown(g *gocui.Gui, v *gocui.View) error {
-	if s.Selected+1 < len(s.History) {
-		s.Selected++
-	} else {
-		Logger.Info("End of history reached. Can not scroll further up")
-	}
-	// just to adhere to KeyBinding handler interface
-	return nil
-}
-
-// ScrollUp is a keybinding
-// decrements selected stat index
-func (s *Stats) ScrollUp(g *gocui.Gui, v *gocui.View) error {
-	if s.Selected > 0 {
-		s.Selected--
-	} else {
-		Logger.Info("Top of history reached. Can not scroll further down")
-	}
-	// just to adhere to KeyBinding handler interface
-	return nil
-}
-
 // StatsView is to keep track of
 // stats and the view
 type StatsView struct {
@@ -269,9 +245,7 @@ func (s *StatsView) updateRaceStats(v *gocui.View) error {
 func (s *StatsView) StartRace() error {
 	err := s.timer.Start()
 	if err != nil {
-		// this is to fix pressing ctrlS multiple times
-		// which caused crashes when ending with ctrlE
-		// due to how timer.wg works
+		// FIXME log this error
 		return err
 	}
 	go s.updateTimer(s.timer, g)
@@ -315,12 +289,31 @@ func (s *StatsView) StopRace(finished bool) error {
 	return err
 }
 
-// InitKeyBindings adds keybindings to scroll in stats history
-func (s *StatsView) InitKeyBindings(g *gocui.Gui) {
-	if err := g.SetKeybinding(s.name, gocui.KeyCtrlJ, gocui.ModNone, s.stats.ScrollUp); err != nil {
-		Logger.Warn(fmt.Sprintf("%v", err))
+// ScrollDown is a keybinding
+// increments selected stat index
+func (s *StatsView) ScrollDown(g *gocui.Gui, v *gocui.View) error {
+	if s.stats.Selected+1 < len(s.stats.History) {
+		s.stats.Selected++
+	} else {
+		Logger.Info("End of history reached. Can not scroll further up")
 	}
-	if err := g.SetKeybinding(s.name, gocui.KeyCtrlK, gocui.ModNone, s.stats.ScrollDown); err != nil {
-		Logger.Warn(fmt.Sprintf("%v", err))
+	// just to adhere to KeyBinding handler interface
+	return nil
+}
+
+// ScrollUp is a keybinding
+// decrements selected stat index
+func (s *StatsView) ScrollUp(g *gocui.Gui, v *gocui.View) error {
+	if s.stats.Selected > 0 {
+		s.stats.Selected--
+	} else {
+		Logger.Info("Top of history reached. Can not scroll further down")
 	}
+	// just to adhere to KeyBinding handler interface
+	return nil
+}
+
+// UnsetKeyBindings deletes keybindigns when this view is active
+func (s *StatsView) UnsetKeyBindings(g *gocui.Gui) {
+	g.DeleteKeybindings(s.name)
 }

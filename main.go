@@ -37,65 +37,23 @@ var (
 	pad        = 1
 )
 
-func initLogger(debug bool) error {
-	if !debug {
-		Logger = zap.New(nil) // no-op logger
-		return nil
-	}
-
-	cfg := zap.NewProductionConfig()
-	path := "./app.log"
-
-	if err := utils.CreateFileIfNotExists(path); err != nil {
-		return err
-	}
-
-	cfg.OutputPaths = []string{path}
-	Logger, _ = cfg.Build()
-	return nil
-}
-
-// checks to see data dirs required for application are present
-// creates dirs/files if not present
-func ensureDataDirs() error {
-	// ensure samples use directory
-	s, err := GetSamplesUseDir()
-	if err != nil {
-		return err
-	}
-	if err := utils.CreateDirIfNotExists(s); err != nil {
-		return err
-	}
-	if err := GenerateLocalParagraphs(); err != nil {
-		return err
-	}
-
-	// ensure racehistory file
-	rh, err := GetHistoryFilePath()
-	if err != nil {
-		return err
-	}
-	if err := utils.CreateFileIfNotExists(rh); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func main() {
 	// Flags
-	debugFlag := flag.Bool("debug", false, "flag for debug mode")
-
 	flag.Parse()
-	debug := *debugFlag
+	debug := *flag.Bool("debug", false, "flag for debug mode")
 
-	if err := ensureDataDirs(); err != nil {
-		log.Panicln(err)
-	}
-	if err := initLogger(debug); err != nil {
+	// Setup logger
+	var err error
+	Logger, err = utils.InitLogger("./app.log", debug)
+	if err != nil {
 		log.Panicln(err)
 	}
 	defer Logger.Sync()
+
+	// Ensure the required data files on local FS are present
+	if err := ensureDataDirs(); err != nil {
+		log.Panicln(err)
+	}
 
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
@@ -111,61 +69,15 @@ func main() {
 
 	g.SetManager(paragraph, word, stats, controls)
 
-	stats.InitKeyBindings(g)
-
-	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", gocui.KeyCtrlS, gocui.ModNone, ctrlS); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("", gocui.KeyCtrlE, gocui.ModNone, ctrlE); err != nil {
-		log.Panicln(err)
-	}
+	// Default key bindings on startup
+	DefaultBindings(gui)
 
 	if debug {
-		if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, advanceWord); err != nil {
-			log.Panicln(err) // FIXME This will crash the app at end of paragraph
-		}
-		// Other debug options
+		debugBindings(gui)
 	}
 
-	Logger.Info("Starting main loop...")
+	Logger.Info("Starting main loop..")
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
-}
-
-func ctrlS(g *gocui.Gui, v *gocui.View) error {
-	err := stats.StartRace()
-	if err == nil {
-		paragraph.Init()
-		word.Init()
-		controls.RaceModeControls()
-	}
-	// TODO ctrlS can be hit during the race
-	// Handle the err from stats gracefully
-	// Or disable these controls during race
-	return nil
-}
-
-func ctrlE(g *gocui.Gui, v *gocui.View) error {
-	paragraph.Reset()
-	word.Reset()
-	stats.StopRace(false)
-	controls.DefaultControls()
-
-	return nil
-}
-
-func quit(g *gocui.Gui, v *gocui.View) error {
-	Logger.Info("Quitting termracer..")
-	return gocui.ErrQuit
-}
-
-// For debugging in the UI
-func advanceWord(g *gocui.Gui, v *gocui.View) error {
-	return paragraph.Advance()
 }

@@ -1,14 +1,14 @@
 package viewdata
 
 // MaxWordLen is maximum a word can go in editor view
-const MaxWordLen int = 15
+const MaxWordLen int = 25
 
 // WordEditorData stores content for word editor view
 type WordEditorData struct {
 	// CurrentTyped is the word currently typed in editor
 	CurrentTyped string
 	// use to check current word is mistyped
-	isMistyped bool
+	IsMistyped bool
 
 	// Channels to communicate with paragraph
 	psender   chan WordValidateMsg
@@ -43,7 +43,7 @@ func (w *WordEditorData) talkWithParagraph() {
 }
 
 func (w *WordEditorData) understandMsg(msg WordValidateMsg) {
-	w.isMistyped = msg.Correct
+	w.IsMistyped = msg.Correct
 	w.CurrentTyped = msg.CurrentTyped
 }
 
@@ -56,12 +56,11 @@ func (w *WordEditorData) sendStatsUpdate(msg WordValidateMsg) {
 // OnChangeMsg sends a message to paragraph for onchange event
 // TODO should this return a error for when psender is closed?
 func (w *WordEditorData) OnChangeMsg(s string) {
-	msg := WordValidateMsg{
+	w.psender <- WordValidateMsg{
 		CurrentTyped: s,
 		Correct:      true,
 		IsNewWord:    false,
 	}
-	w.psender <- msg
 }
 
 func (w *WordEditorData) getDoneCh() chan struct{} {

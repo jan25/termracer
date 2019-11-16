@@ -1,8 +1,6 @@
 package views
 
 import (
-	"strings"
-
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/viewdata"
 )
@@ -22,7 +20,7 @@ type WordView struct {
 	done chan struct{}
 
 	// data about contents of editor view
-	Data *viewdata.WordViewData
+	Data *viewdata.WordEditorData
 }
 
 func newWordView(name string, x, y int, w, h int) *WordView {
@@ -61,17 +59,23 @@ func (w *WordView) getDoneCh() chan struct{} {
 	return w.done
 }
 
-func (w *WordView) clearEditor(v *gocui.View) {
-	v.Clear()
-	v.SetCursor(v.Origin())
-	v.Editable = false
-}
-
 func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor) {
 	v.Editor = *e
 	v.Editable = true
 	v.SelBgColor = gocui.ColorRed
 	v.SelFgColor = gocui.ColorCyan
+
+	if len(w.Data.CurrentTyped) == 0 {
+		w.clearEditor(v) // Reset to origin for new target word
+	} else {
+		w.highlight(v)
+	}
+}
+
+func (w *WordView) clearEditor(v *gocui.View) {
+	v.Clear()
+	v.SetCursor(v.Origin())
+	v.Editable = false
 }
 
 func (w *WordView) newWordEditor() gocui.Editor {
@@ -79,14 +83,14 @@ func (w *WordView) newWordEditor() gocui.Editor {
 }
 
 func (w *WordView) wordEditorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-	word := strings.TrimSpace(w.getCurrentWord(v))
+	currentTyped := w.getCurrentTyped(v)
 
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		w.handleDelete(v, true)
 	case key == gocui.KeyDelete:
-		w.handleDelete(v, false)
-	case len(word) > viewdata.MaxWordLen:
+		w.handleDelete(v, false) // FIXME figure why did we write this?
+	case len(currentTyped) > viewdata.MaxWordLen:
 		// do not add anymore runes
 		// can only delete from here
 	case ch != 0 && mod == 0:
@@ -98,50 +102,33 @@ func (w *WordView) wordEditorFunc(v *gocui.View, key gocui.Key, ch rune, mod goc
 
 func (w *WordView) handleDelete(v *gocui.View, back bool) {
 	v.EditDelete(back)
-	w.checkAndHighlight(v)
+	w.onChange(v)
 }
 
 func (w *WordView) handleChar(v *gocui.View, ch rune) {
 	v.EditWrite(ch)
-	w.checkAndHighlight(v)
+	w.onChange(v)
 }
 
 func (w *WordView) handleSpace(v *gocui.View) {
-	cw := strings.TrimSpace(w.getCurrentWord(v))
-	if cw == w.Data.TargetWord {
-		w.clearEditor(v)
+	w.onChange(v)
 
-		perr := paragraph.Advance()
-		if perr != nil {
-			// finished typing all words by this points
-			paragraph.Reset()
-			word.Reset()
-			stats.StopRace(true)
-			controls.DefaultControlsContent()
-			AfterRaceControls(g, false) // FIXME do not use global Gui ref
-		}
-	} else {
-		// TODO Should we count mistyped space as mistake?
-		w.highlight(false, v)
-		v.EditWrite(' ')
-	}
+	// TODO figure how to finish race at end of target paragraph
 }
 
-func (w *WordView) checkAndHighlight(v *gocui.View) {
-	cw := strings.TrimSpace(w.getCurrentWord(v))
-	ok := strings.HasPrefix(w.Data.TargetWord, cw)
-	w.highlight(ok, v)
-	if !ok {
-		w.Data.Mistyped++
-	}
+// sends message to paragraph for
+// typed word validations
+func (w *WordView) onChange(v *gocui.View) {
+	w.Data.OnChangeMsg(w.getCurrentTyped(v))
 }
 
-func (w *WordView) highlight(ok bool, v *gocui.View) {
-	v.Highlight = !ok
-	// paragraph.Mistyped = !ok
+// highlight for incorrectly typed word
+func (w *WordView) highlight(v *gocui.View) {
+	v.Highlight = w.Data.IsMistyped
 }
 
-func (w *WordView) getCurrentWord(v *gocui.View) string {
+// gets current word in the editor
+func (w *WordView) getCurrentTyped(v *gocui.View) string {
 	line := v.Buffer()
 	return line
 }

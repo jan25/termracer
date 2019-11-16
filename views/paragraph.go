@@ -71,11 +71,11 @@ func (pv *ParagraphView) DrawView(v *gocui.View) {
 	v.SetOrigin(0, pv.Oy) // scroll
 
 	pd := pv.Data
-	for i, w := range pd.Words() {
+	for i, w := range pd.Words {
 		highlight := false
 		done := false
 
-		ti := pd.TargetWordIndex()
+		ti := pd.GetCurrentIdx()
 		if i < ti {
 			done = true
 		} else if i == ti {
@@ -93,7 +93,7 @@ func (pv *ParagraphView) printWord(v *gocui.View, w string, highlight bool, done
 		fg.Fprintf(v, f, w)
 	} else if highlight {
 		bg := color.New(color.BgGreen)
-		if pv.Data.IsMistyped() {
+		if pv.Data.Mistyped {
 			bg = color.New(color.BgRed)
 		}
 		bg.Add(color.Underline)
@@ -118,7 +118,7 @@ func (pv *ParagraphView) makeScroll() {
 		return
 	}
 	currLine := pd.Line - pv.Oy
-	linesLeft := (pd.LineCount() - 1) - pd.Line
+	linesLeft := (pd.GetLineCount() - 1) - pd.Line
 	if currLine == atLine && linesLeft >= whenLinesLeft {
 		pv.Oy++
 	}

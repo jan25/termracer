@@ -9,7 +9,7 @@ import (
 // required for view's content
 type ParagraphData struct {
 	// words in paragraph
-	words []string
+	Words []string
 	// index of target word - 0 based
 	wordi int
 	// whether target word is mistyped
@@ -32,7 +32,7 @@ type ParagraphData struct {
 // NewParagraphData creates instance of ParagraphData
 func NewParagraphData(sender, receiver *chan WordValidateMsg) *ParagraphData {
 	return &ParagraphData{
-		words:     getTargetWords(),
+		Words:     getTargetWords(),
 		wordi:     0,
 		Mistyped:  false,
 		lineCount: 0, // FIXME
@@ -90,7 +90,7 @@ func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
 	cw := pd.currentWord()
 
 	correct := strings.HasPrefix(s, cw)
-	newWord := (s == cw)
+	newWord := (s == cw) && strings.HasSuffix(msg.CurrentTyped, " ")
 	setTyped := msg.CurrentTyped
 	if newWord {
 		setTyped = "" // resets editor
@@ -101,10 +101,23 @@ func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
 		IsNewWord:    newWord,
 		CurrentTyped: setTyped,
 	}
+
+	pd.Mistyped = correct
 }
 
 func (pd *ParagraphData) currentWord() string {
-	return pd.words[pd.wordi]
+	return pd.Words[pd.wordi]
+}
+
+// GetCurrentIdx tells index of target word
+func (pd *ParagraphData) GetCurrentIdx() int {
+	return pd.wordi
+}
+
+// GetLineCount returns number of lines displayed in
+// paragraph view
+func (pd *ParagraphData) GetLineCount() int {
+	return pd.lineCount
 }
 
 func (pd *ParagraphData) getDoneCh() chan struct{} {

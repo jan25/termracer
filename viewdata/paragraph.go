@@ -2,6 +2,7 @@ package viewdata
 
 import (
 	"errors"
+	"strings"
 )
 
 // ParagraphData keeps track of state, data
@@ -22,8 +23,8 @@ type ParagraphData struct {
 	Word int
 
 	// Channels to communicate with wordeditor
-	sender   chan WordValidateMsg
-	receiver chan WordValidateMsg
+	wsender   chan WordValidateMsg
+	wreceiver chan WordValidateMsg
 
 	done chan struct{}
 }
@@ -37,8 +38,8 @@ func NewParagraphData(sender, receiver *chan WordValidateMsg) *ParagraphData {
 		lineCount: 0, // FIXME
 		Line:      0,
 		Word:      0,
-		sender:    *sender,
-		receiver:  *receiver,
+		wsender:   *sender,
+		wreceiver: *receiver,
 	}
 }
 
@@ -49,8 +50,8 @@ func getTargetWords() []string {
 
 // Start is called when a race starts
 func (pd *ParagraphData) Start() error {
-	if pd.sender == nil || pd.receiver == nil {
-		return errors.New("sender or receiver is nil")
+	if pd.wsender == nil || pd.wreceiver == nil {
+		return errors.New("wsender or wreceiver is nil")
 	}
 
 	go pd.talkWithWordEditor()
@@ -71,22 +72,39 @@ func (pd *ParagraphData) Finish() error {
 }
 
 func (pd *ParagraphData) talkWithWordEditor() {
-	defer close(pd.receiver)
+	defer close(pd.wreceiver)
 
 	for {
 		select {
 		case <-pd.getDoneCh():
 			return
 		default:
-			msg := <-pd.receiver
+			msg := <-pd.wreceiver
 			pd.validateTypedWord(msg)
 		}
 	}
 }
 
 func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
-	// TODO validate word and update state
-	// send required information into ->sender
+	s := strings.TrimSuffix(msg.CurrentTyped, " ") // time any suffix at end
+	cw := pd.currentWord()
+
+	correct := strings.HasPrefix(s, cw)
+	newWord := (s == cw)
+	setTyped := msg.CurrentTyped
+	if newWord {
+		setTyped = "" // resets editor
+	}
+
+	pd.wsender <- WordValidateMsg{
+		Correct:      correct,
+		IsNewWord:    newWord,
+		CurrentTyped: setTyped,
+	}
+}
+
+func (pd *ParagraphData) currentWord() string {
+	return pd.words[pd.wordi]
 }
 
 func (pd *ParagraphData) getDoneCh() chan struct{} {

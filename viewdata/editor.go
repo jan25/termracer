@@ -5,6 +5,8 @@ const MaxWordLen int = 15
 
 // WordEditorData stores content for word editor view
 type WordEditorData struct {
+	// CurrentTyped is the word currently typed in editor
+	CurrentTyped string
 	// use to check current word is mistyped
 	isMistyped bool
 
@@ -20,9 +22,9 @@ type WordEditorData struct {
 
 // WordValidateMsg is used to communicate with ParagraphData
 type WordValidateMsg struct {
-	Current   string
-	Correct   bool
-	IsNewWord bool
+	CurrentTyped string
+	Correct      bool
+	IsNewWord    bool
 }
 
 func (w *WordEditorData) talkWithParagraph() {
@@ -35,12 +37,31 @@ func (w *WordEditorData) talkWithParagraph() {
 		default:
 			msg := <-w.preceiver
 			w.understandMsg(msg)
+			w.sendStatsUpdate(msg)
 		}
 	}
 }
 
 func (w *WordEditorData) understandMsg(msg WordValidateMsg) {
-	// TODO
+	w.isMistyped = msg.Correct
+	w.CurrentTyped = msg.CurrentTyped
+}
+
+func (w *WordEditorData) sendStatsUpdate(msg WordValidateMsg) {
+	w.rsender <- StatMsg{
+		IsMistyped: msg.Correct,
+	}
+}
+
+// OnChangeMsg sends a message to paragraph for onchange event
+// TODO should this return a error for when psender is closed?
+func (w *WordEditorData) OnChangeMsg(s string) {
+	msg := WordValidateMsg{
+		CurrentTyped: s,
+		Correct:      true,
+		IsNewWord:    false,
+	}
+	w.psender <- msg
 }
 
 func (w *WordEditorData) getDoneCh() chan struct{} {

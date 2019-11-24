@@ -47,7 +47,7 @@ func (pv *ParagraphView) Layout(g *gocui.Gui) error {
 	}
 
 	select {
-	case <-pv.getDoneCh():
+	case <-pv.getDoneCh(): // FIXME move the done chan to pv.Data
 		// channel closed
 		v.Clear()
 	default:

@@ -16,6 +16,8 @@ type OneStat struct {
 // Stats is a datastructure to
 // store stats for past races
 type Stats struct {
-	History  []*OneStat
+	List     []*OneStat
 	Selected int // To keep track of highlighted stat in history
+
+	IsActive bool // whether this data is active to show in stats view
 }

@@ -234,6 +234,7 @@ func (s *StatsView) updateRaceStats(v *gocui.View) error {
 	currentStat := s.stats.Current
 
 	v.Clear()
+	Logger.Info("elapsedTime", zap.Int("mins", elapsedTime.Mins), zap.Int("secs", elapsedTime.Secs))
 	fmt.Fprintf(v, "%02d:%02d \n", elapsedTime.Mins, elapsedTime.Secs)
 	if currentStat != nil {
 		fmt.Fprintf(v, "wpm %d \nAccuracy %.2f%% \n", currentStat.Wpm, currentStat.Accuracy)
@@ -254,7 +255,6 @@ func (s *StatsView) StartRace() error {
 }
 
 func (s *StatsView) updateTimer(t *Timer, g *gocui.Gui) {
-	defer t.wg.Done()
 
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
@@ -266,13 +266,13 @@ func (s *StatsView) updateTimer(t *Timer, g *gocui.Gui) {
 		case <-ticker.C:
 			g.Update(func(g *gocui.Gui) error {
 				// TODO remove hardcoded view name
-				v, err := g.View("stats")
-				if err != nil {
-					return err
-				}
-				v.Clear()
-				elapsed, _ := t.ElapsedTime()
-				fmt.Fprintf(v, "%02d:%02d", elapsed.Mins, elapsed.Secs)
+				// v, err := g.View("stats")
+				// if err != nil {
+				// 	return err
+				// }
+				// v.Clear()
+				// elapsed, _ := t.ElapsedTime()
+				// fmt.Fprintf(v, "%02d:%02d", elapsed.Mins, elapsed.Secs)
 				return nil
 			})
 		}

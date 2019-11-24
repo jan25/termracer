@@ -39,8 +39,6 @@ $ make run
 $ make debug
 ```
 
-## Note: The current master is in one single main package with global shared variables. So in-order to 
-## seperate concerns the project is in rewrite period, so at end of it we'll have components seperated into
-## nicer modules/packages. Expect the finished rewrite milestone 0.2.0-alpha scheduled on 01-12-2019 CEST
+## Note: The current master is in one single main package with global shared variables. So in-order to seperate concerns the project is in rewrite period, so at end of it we'll have components seperated into nicer modules/packages. Expect the finished rewrite milestone 0.2.0-alpha scheduled on 01-12-2019 CEST
 
 The design/features are written in [NOTES.md](https://github.com/jan25/termracer/blob/master/NOTES.md).

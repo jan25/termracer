@@ -43,7 +43,7 @@ func (w *WordView) Layout(g *gocui.Gui) error {
 	}
 
 	select {
-	case <-w.getDoneCh():
+	case <-w.getDoneCh(): // FIXME move the done chan to w.Data
 		// channel closed
 		w.clearEditor(v)
 	default:
@@ -111,6 +111,7 @@ func (w *WordView) handleChar(v *gocui.View, ch rune) {
 }
 
 func (w *WordView) handleSpace(v *gocui.View) {
+	v.EditWrite(' ') // single space
 	w.onChange(v)
 
 	// TODO figure how to finish race at end of target paragraph

@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"sync"
 	"time"
 )
 
@@ -15,7 +14,6 @@ type Timer struct {
 	// Keeps track of state of timer
 	active bool
 	done   chan struct{}
-	wg     sync.WaitGroup
 }
 
 // TimeFormatted wraps time.Duration converted to
@@ -39,7 +37,6 @@ func (t *Timer) Start() error {
 	t.active = true
 	t.done = make(chan struct{})
 
-	t.wg.Add(1)
 	return nil
 }
 

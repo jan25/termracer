@@ -39,8 +39,8 @@ var (
 
 func main() {
 	// Flags
-	flag.Parse()
 	debug := *flag.Bool("debug", false, "flag for debug mode")
+	flag.Parse()
 
 	// Setup logger
 	var err error

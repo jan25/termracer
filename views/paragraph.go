@@ -25,7 +25,7 @@ type ParagraphView struct {
 	done chan struct{}
 
 	// Data stores content of the view
-	Data viewdata.ParagraphData
+	Data viewdata.ParagraphData // FIXME: this is nil, find a way to set this
 }
 
 func newParagraphView(name string, x, y int, w, h int) *ParagraphView {
@@ -47,7 +47,7 @@ func (pv *ParagraphView) Layout(g *gocui.Gui) error {
 	}
 
 	select {
-	case <-pv.getDoneCh():
+	case <-pv.getDoneCh(): // FIXME move the done chan to pv.Data
 		// channel closed
 		v.Clear()
 	default:

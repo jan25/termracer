@@ -220,7 +220,7 @@ func (s *StatsView) updateRaceStats(v *gocui.View) error {
 
 	secs := elapsedTime.Mins*60 + elapsedTime.Secs
 	if secs != 0 {
-		s.stats.Current.Wpm = utils.CalculateWpm(paragraph.CountDoneWords(), secs)
+		s.stats.Current.Wpm = utils.CalculateWpm(paragraph.CountDoneWords(), float64(secs))
 	} else {
 		s.stats.Current.Wpm = 0
 	}

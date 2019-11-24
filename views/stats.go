@@ -102,8 +102,14 @@ func (sv *StatsView) renderLiveRaceData(v *gocui.View, g *gocui.Gui) error {
 	}
 	fmt.Fprintf(v, "%02d:%02d \n", t.Mins, t.Secs)
 
-	wpm := sv.LiveRaceData.Wpm()
-	acc := sv.LiveRaceData.Accuracy()
+	wpm, err := sv.LiveRaceData.Wpm()
+	if err != nil {
+		return err
+	}
+	acc, err := sv.LiveRaceData.Accuracy()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(v, "wpm %d \nAccuracy %.2f%% \n", wpm, acc)
 
 	return nil

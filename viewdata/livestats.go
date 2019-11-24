@@ -110,13 +110,18 @@ func (ls *LiveStats) ElapsedTime() (*utils.TimeFormatted, error) {
 }
 
 // Wpm is words per minute stat from beginning of a race
-func (ls *LiveStats) Wpm() int {
-	return 0
+func (ls *LiveStats) Wpm() (int, error) {
+	secs, err := ls.timer.ElapsedTimeInSecs()
+	if err != nil {
+		return 0, err
+	}
+	wpm := utils.CalculateWpm(ls.correct, secs)
+	return int(wpm), nil
 }
 
 // Accuracy of typing during a race
-func (ls *LiveStats) Accuracy() float32 {
-	return 0
+func (ls *LiveStats) Accuracy() (float64, error) {
+	return utils.CalculateAccuracy(ls.correct+ls.incorrect, ls.incorrect)
 }
 
 func (ls *LiveStats) getDoneCh() chan struct{} {

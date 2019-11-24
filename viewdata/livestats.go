@@ -15,7 +15,7 @@ type LiveStats struct {
 	incorrect int
 
 	// stream of messages from word editor
-	m chan StatMsg
+	wreceiver chan StatMsg
 
 	// done channel
 	done chan struct{}
@@ -32,17 +32,16 @@ type StatMsg struct {
 }
 
 // NewLiveStats creates new instance of LiveStats
-func NewLiveStats(m *chan StatMsg) *LiveStats {
+func NewLiveStats() *LiveStats {
 	return &LiveStats{
 		correct:   0,
 		incorrect: 0,
-		m:         *m,
 	}
 }
 
-// Start is called on new race start
-func (ls *LiveStats) Start() error {
-	if ls.m == nil {
+// StartRace starts a new race
+func (ls *LiveStats) StartRace() error {
+	if ls.wreceiver == nil {
 		return errors.New("stream channel is nil")
 	}
 
@@ -69,14 +68,14 @@ func (ls *LiveStats) TryStartTicker(g *gocui.Gui) {
 }
 
 func (ls *LiveStats) listenToWordEditor() {
-	defer close(ls.m)
+	defer close(ls.wreceiver)
 
 	for {
 		select {
 		case <-ls.getDoneCh():
 			return
 		default:
-			msg := <-ls.m
+			msg := <-ls.wreceiver
 			if msg.IsMistyped {
 				ls.incorrect++
 			} else {
@@ -86,8 +85,8 @@ func (ls *LiveStats) listenToWordEditor() {
 	}
 }
 
-// Finish is called at end of a race
-func (ls *LiveStats) Finish() error {
+// FinishRace finishes a ongoing race
+func (ls *LiveStats) FinishRace() error {
 	var err error
 	select {
 	case <-ls.getDoneCh():

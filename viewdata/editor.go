@@ -27,8 +27,33 @@ type WordValidateMsg struct {
 	IsNewWord    bool
 }
 
+// NewWordEditorData creates new WordEditorData instance
+func NewWordEditorData() *WordEditorData {
+	return &WordEditorData{
+		CurrentTyped: "",
+		IsMistyped:   false,
+	}
+}
+
+// StartRace starts a new race
+func (w *WordEditorData) StartRace(psender, preceiver chan WordValidateMsg, rsender chan StatMsg) {
+	w.psender = psender
+	w.preceiver = preceiver
+	w.rsender = rsender
+
+	go w.talkWithParagraph()
+}
+
+// FinishRace finishes a ongoing race
+func (w *WordEditorData) FinishRace() {
+	w.CurrentTyped = ""
+	w.IsMistyped = false
+
+	close(w.getDoneCh())
+}
+
 func (w *WordEditorData) talkWithParagraph() {
-	defer close(w.preceiver)
+	defer close(w.preceiver) // FIXME: figure how closes what
 
 	for {
 		select {

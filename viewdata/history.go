@@ -31,6 +31,28 @@ type Stats struct {
 	IsActive bool // whether this data is active to show in stats view
 }
 
+// NewStatsHistory creates new Stats instance to keep track of race history
+func NewStatsHistory() (*Stats, error) {
+	s := Stats{
+		IsActive: true, // default data on app startup
+	}
+	if err := s.LoadHistory(); err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
+// Just use s.IsActive directly for now
+// instead of:
+// OnStartRace called at start of new race
+// func (s *Stats) OnStartRace() {
+// 	s.IsActive = false
+// }
+// OnFinishRace called at race finish
+// func (s *Stats) OnFinishRace() {
+// 	s.IsActive = true
+// }
+
 // SaveNewStat saves current race's stat to history of stats
 func (s *Stats) SaveNewStat(stat *OneStat) error {
 	s.List = append(s.List, stat)

@@ -36,6 +36,7 @@ func NewLiveStats() *LiveStats {
 	return &LiveStats{
 		correct:   0,
 		incorrect: 0,
+		IsActive:  false, // default: no race in progress at app startup
 	}
 }
 

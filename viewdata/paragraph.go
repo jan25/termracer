@@ -54,6 +54,8 @@ func (pd *ParagraphData) Start() error {
 		return errors.New("wsender or wreceiver is nil")
 	}
 
+	pd.newDoneCh()
+
 	go pd.talkWithWordEditor()
 
 	return nil
@@ -62,10 +64,10 @@ func (pd *ParagraphData) Start() error {
 // Finish is called to finish a race
 func (pd *ParagraphData) Finish() error {
 	select {
-	case <-pd.getDoneCh():
+	case <-pd.DoneCh():
 		return errors.New("race already stopped")
 	default:
-		close(pd.getDoneCh())
+		close(pd.DoneCh())
 	}
 
 	return nil
@@ -76,7 +78,7 @@ func (pd *ParagraphData) talkWithWordEditor() {
 
 	for {
 		select {
-		case <-pd.getDoneCh():
+		case <-pd.DoneCh():
 			return
 		default:
 			msg := <-pd.wreceiver
@@ -120,9 +122,14 @@ func (pd *ParagraphData) GetLineCount() int {
 	return pd.lineCount
 }
 
-func (pd *ParagraphData) getDoneCh() chan struct{} {
+func (pd *ParagraphData) newDoneCh() {
+	pd.done = make(chan struct{})
+}
+
+// DoneCh returns reference to done channel
+func (pd *ParagraphData) DoneCh() chan struct{} {
 	if pd.done == nil {
-		pd.done = make(chan struct{})
+		pd.newDoneCh()
 	}
 	return pd.done
 }

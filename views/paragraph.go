@@ -47,21 +47,14 @@ func (pv *ParagraphView) Layout(g *gocui.Gui) error {
 	}
 
 	select {
-	case <-pv.getDoneCh(): // FIXME move the done chan to pv.Data
-		// channel closed
+	case <-pv.Data.DoneCh():
+		// no race in progress
 		v.Clear()
 	default:
 		pv.DrawView(v)
 	}
 
 	return nil
-}
-
-func (pv *ParagraphView) getDoneCh() chan struct{} {
-	if pv.done == nil {
-		pv.done = make(chan struct{})
-	}
-	return pv.done
 }
 
 // DrawView renders the ParagraphView

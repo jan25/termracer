@@ -41,6 +41,8 @@ func (w *WordEditorData) StartRace(psender, preceiver chan WordValidateMsg, rsen
 	w.preceiver = preceiver
 	w.rsender = rsender
 
+	w.newDoneCh()
+
 	go w.talkWithParagraph()
 }
 
@@ -49,15 +51,15 @@ func (w *WordEditorData) FinishRace() {
 	w.CurrentTyped = ""
 	w.IsMistyped = false
 
-	close(w.getDoneCh())
+	close(w.DoneCh())
 }
 
 func (w *WordEditorData) talkWithParagraph() {
-	defer close(w.preceiver) // FIXME: figure how closes what
+	defer close(w.preceiver) // FIXME: figure who closes what
 
 	for {
 		select {
-		case <-w.getDoneCh():
+		case <-w.DoneCh():
 			return
 		default:
 			msg := <-w.preceiver
@@ -88,9 +90,14 @@ func (w *WordEditorData) OnChangeMsg(s string) {
 	}
 }
 
-func (w *WordEditorData) getDoneCh() chan struct{} {
+func (w *WordEditorData) newDoneCh() {
+	w.done = make(chan struct{})
+}
+
+// DoneCh returns reference to done channel
+func (w *WordEditorData) DoneCh() chan struct{} {
 	if w.done == nil {
-		w.done = make(chan struct{})
+		w.newDoneCh()
 	}
 	return w.done
 }

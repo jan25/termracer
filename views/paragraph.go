@@ -25,7 +25,7 @@ type ParagraphView struct {
 	done chan struct{}
 
 	// Data stores content of the view
-	Data viewdata.ParagraphData // FIXME: this is nil, find a way to set this
+	Data *viewdata.ParagraphData
 }
 
 func newParagraphView(name string, x, y int, w, h int) *ParagraphView {
@@ -36,6 +36,7 @@ func newParagraphView(name string, x, y int, w, h int) *ParagraphView {
 		w:    w,
 		h:    h,
 		Oy:   0,
+		Data: viewdata.NewParagraphData(),
 	}
 }
 

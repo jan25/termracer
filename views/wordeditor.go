@@ -30,6 +30,7 @@ func newWordView(name string, x, y int, w, h int) *WordView {
 		y:    y,
 		w:    w,
 		h:    h,
+		Data: viewdata.NewWordEditorData(),
 	}
 	wv.e = wv.newWordEditor() // This looks wierd, doesn't it?
 	return wv

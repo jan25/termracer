@@ -30,7 +30,7 @@ type ParagraphData struct {
 }
 
 // NewParagraphData creates instance of ParagraphData
-func NewParagraphData(sender, receiver *chan WordValidateMsg) *ParagraphData {
+func NewParagraphData() *ParagraphData {
 	return &ParagraphData{
 		Words:     getTargetWords(),
 		wordi:     0,
@@ -38,8 +38,6 @@ func NewParagraphData(sender, receiver *chan WordValidateMsg) *ParagraphData {
 		lineCount: 0, // FIXME
 		Line:      0,
 		Word:      0,
-		wsender:   *sender,
-		wreceiver: *receiver,
 	}
 }
 
@@ -88,7 +86,7 @@ func (pd *ParagraphData) talkWithWordEditor() {
 }
 
 func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
-	s := strings.TrimSuffix(msg.CurrentTyped, " ") // time any suffix at end
+	s := strings.TrimSuffix(msg.CurrentTyped, " ") // trim any suffix at end
 	cw := pd.currentWord()
 
 	correct := strings.HasPrefix(s, cw)

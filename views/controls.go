@@ -20,7 +20,8 @@ type ControlsView struct {
 	content string
 }
 
-func newControls(name string, x, y int, w, h int) *ControlsView {
+// NewControls creates new instance of ControlsView
+func NewControls(name string, x, y int, w, h int) *ControlsView {
 	return &ControlsView{
 		name:    name,
 		x:       x,

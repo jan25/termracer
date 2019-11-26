@@ -28,7 +28,8 @@ type ParagraphView struct {
 	Data *viewdata.ParagraphData
 }
 
-func newParagraphView(name string, x, y int, w, h int) *ParagraphView {
+// NewParagraphView creates new instance of ParagraphView
+func NewParagraphView(name string, x, y int, w, h int) *ParagraphView {
 	return &ParagraphView{
 		name: name,
 		x:    x,

@@ -46,8 +46,8 @@ func getTargetWords() []string {
 	return nil
 }
 
-// Start is called when a race starts
-func (pd *ParagraphData) Start() error {
+// StartRace is called when a race starts
+func (pd *ParagraphData) StartRace() error {
 	if pd.wsender == nil || pd.wreceiver == nil {
 		return errors.New("wsender or wreceiver is nil")
 	}
@@ -59,8 +59,8 @@ func (pd *ParagraphData) Start() error {
 	return nil
 }
 
-// Finish is called to finish a race
-func (pd *ParagraphData) Finish() error {
+// FinishRace is called to finish a race
+func (pd *ParagraphData) FinishRace() error {
 	select {
 	case <-pd.DoneCh():
 		return errors.New("race already stopped")
@@ -69,6 +69,12 @@ func (pd *ParagraphData) Finish() error {
 	}
 
 	return nil
+}
+
+// SetChannels sets channels for communication
+func (pd *ParagraphData) SetChannels(wsender, wreceiver chan WordValidateMsg) {
+	pd.wsender = wsender
+	pd.wreceiver = wreceiver
 }
 
 func (pd *ParagraphData) talkWithWordEditor() {

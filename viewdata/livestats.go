@@ -68,6 +68,11 @@ func (ls *LiveStats) TryStartTicker(g *gocui.Gui) {
 	go utils.Tick(ls.timer, g)
 }
 
+// SetChannels sets channels for communication
+func (ls *LiveStats) SetChannels(wreceiver chan StatMsg) {
+	ls.wreceiver = wreceiver
+}
+
 func (ls *LiveStats) listenToWordEditor() {
 	defer close(ls.wreceiver)
 

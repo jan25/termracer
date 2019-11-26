@@ -23,7 +23,8 @@ type WordView struct {
 	Data *viewdata.WordEditorData
 }
 
-func newWordView(name string, x, y int, w, h int) *WordView {
+// NewWordView creates new instance of WordView
+func NewWordView(name string, x, y int, w, h int) *WordView {
 	wv := &WordView{
 		name: name,
 		x:    x,

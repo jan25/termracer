@@ -1,5 +1,7 @@
 package viewdata
 
+import "errors"
+
 // MaxWordLen is maximum a word can go in editor view
 const MaxWordLen int = 25
 
@@ -36,22 +38,35 @@ func NewWordEditorData() *WordEditorData {
 }
 
 // StartRace starts a new race
-func (w *WordEditorData) StartRace(psender, preceiver chan WordValidateMsg, rsender chan StatMsg) {
-	w.psender = psender
-	w.preceiver = preceiver
-	w.rsender = rsender
+func (w *WordEditorData) StartRace() error {
+	if w.psender == nil || w.preceiver == nil || w.rsender == nil {
+		return errors.New("Channel for communication is nil")
+	}
 
 	w.newDoneCh()
-
 	go w.talkWithParagraph()
+	return nil
 }
 
 // FinishRace finishes a ongoing race
-func (w *WordEditorData) FinishRace() {
+func (w *WordEditorData) FinishRace() error {
 	w.CurrentTyped = ""
 	w.IsMistyped = false
 
-	close(w.DoneCh())
+	select {
+	case <-w.DoneCh():
+		return errors.New("race already stopped")
+	default:
+		close(w.DoneCh())
+	}
+	return nil
+}
+
+// SetChannels sets channels for communication with other components during a race
+func (w *WordEditorData) SetChannels(psender, preceiver chan WordValidateMsg, rsender chan StatMsg) {
+	w.psender = psender
+	w.preceiver = preceiver
+	w.rsender = rsender
 }
 
 func (w *WordEditorData) talkWithParagraph() {

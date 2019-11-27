@@ -19,11 +19,7 @@ const (
 var (
 	// Logger is a global file logger
 	Logger    *zap.Logger
-	g         *gocui.Gui
-	paragraph *Paragraph
-	word      *Word
-	stats     *StatsView
-	controls  *Controls
+	app *AppData
 )
 
 var (
@@ -59,15 +55,12 @@ func main() {
 	if err != nil {
 		log.Panicln(err)
 	}
-	g = gui
-	defer g.Close()
+	defer gui.Close()
 
-	paragraph = newParagraph(paraName, topX, topY, paraW, paraH)
-	word = newWord(wordName, topX, topY+paraH+pad, wordW, wordH)
-	stats = newStatsView(statsName, topX+paraW+pad, topY, statsW, statsH)
-	controls = newControls(controlsName, topX+paraW+pad, topY+statsH+pad, controlsW, controlsH)
-
-	g.SetManager(paragraph, word, stats, controls)
+	app, err = InitializeAppData(gui)
+	if err != nil {
+		log.Panicln(err)
+	}
 
 	// Default key bindings on startup
 	DefaultBindings(gui)
@@ -77,7 +70,7 @@ func main() {
 	}
 
 	Logger.Info("Starting main loop..")
-	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
+	if err := gui.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
 }

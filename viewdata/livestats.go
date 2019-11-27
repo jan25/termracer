@@ -37,6 +37,7 @@ func NewLiveStats() *LiveStats {
 		correct:   0,
 		incorrect: 0,
 		IsActive:  false, // default: no race in progress at app startup
+		timer:     utils.NewTimer(),
 	}
 }
 

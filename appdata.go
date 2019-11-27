@@ -49,6 +49,9 @@ func (ad *AppData) OnRaceStart() error {
 	ad.editor.SetChannels(wordToPara, paraToWord, wordToStats)
 	ad.stats.SetChannels(wordToStats)
 
+	ad.stats.IsActive = !ad.stats.IsActive
+	ad.history.IsActive = !ad.history.IsActive
+
 	if err := ad.paragraph.StartRace(); err != nil {
 		return err
 	}
@@ -59,9 +62,6 @@ func (ad *AppData) OnRaceStart() error {
 		return err
 	}
 	ad.controls.StartRace()
-
-	ad.stats.IsActive = !ad.stats.IsActive
-	ad.history.IsActive = !ad.history.IsActive
 
 	return nil
 }

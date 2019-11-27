@@ -37,12 +37,12 @@ func AfterRaceControls(g *gocui.Gui, isDefault bool) {
 	if err := g.SetKeybinding("", gocui.KeyCtrlS, gocui.ModNone, ctrlS); err != nil {
 		log.Panicln(err)
 	}
-	if err := g.SetKeybinding("", gocui.KeyCtrlJ, gocui.ModNone, stats.ScrollUp); err != nil {
-		log.Panicln(err)
-	}
-	if err := g.SetKeybinding("", gocui.KeyCtrlK, gocui.ModNone, stats.ScrollDown); err != nil {
-		log.Panicln(err)
-	}
+	// if err := g.SetKeybinding("", gocui.KeyCtrlJ, gocui.ModNone, stats.ScrollUp); err != nil {
+	// 	log.Panicln(err)
+	// }
+	// if err := g.SetKeybinding("", gocui.KeyCtrlK, gocui.ModNone, stats.ScrollDown); err != nil {
+	// 	log.Panicln(err)
+	// }
 
 	if !isDefault {
 		if err := g.DeleteKeybinding("", gocui.KeyCtrlE, gocui.ModNone); err != nil {
@@ -52,23 +52,13 @@ func AfterRaceControls(g *gocui.Gui, isDefault bool) {
 }
 
 func ctrlS(g *gocui.Gui, v *gocui.View) error {
-	DuringRaceControls(g)
-	stats.StartRace()
-	paragraph.Init()
-	word.Init()
-	controls.RaceModeControlsContent()
-
-	return nil
+	err := app.OnRaceStart()
+	return err
 }
 
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
-	AfterRaceControls(g, false)
-	paragraph.Reset()
-	word.Reset()
-	stats.StopRace(false)
-	controls.DefaultControlsContent()
-
-	return nil
+	err := app.OnRaceFinish()
+	return err
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
@@ -77,12 +67,13 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 }
 
 func debugBindings(g *gocui.Gui) {
-	if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, advanceWord); err != nil {
-		log.Panicln(err) // FIXME This will crash the app at end of paragraph
-	}
+	// TODO
+	// if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, advanceWord); err != nil {
+	// 	log.Panicln(err) // FIXME This will crash the app at end of paragraph
+	// }
 }
 
-// For debugging in the UI
-func advanceWord(g *gocui.Gui, v *gocui.View) error {
-	return paragraph.Advance()
-}
+// FIXME: For debugging in the UI
+// func advanceWord(g *gocui.Gui, v *gocui.View) error {
+// 	return paragraph.Advance()
+// }

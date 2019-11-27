@@ -51,6 +51,7 @@ func (ls *LiveStats) StartRace() error {
 		return errors.New("Failed to start timer: " + err.Error())
 	}
 
+	ls.newDoneCh()
 	go ls.listenToWordEditor()
 
 	ls.IsActive = true
@@ -131,6 +132,10 @@ func (ls *LiveStats) Accuracy() (float64, error) {
 		return 0, nil // FIXME: accuracy is 0 on race start, should be '-'
 	}
 	return utils.CalculateAccuracy(ls.correct+ls.incorrect, ls.incorrect)
+}
+
+func (ls *LiveStats) newDoneCh() {
+	ls.done = make(chan struct{})
 }
 
 func (ls *LiveStats) getDoneCh() chan struct{} {

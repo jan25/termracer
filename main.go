@@ -7,12 +7,10 @@ import (
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/db"
-	"go.uber.org/zap"
 )
 
 var (
-	app    *AppData
-	logger *zap.Logger
+	app *AppData
 )
 
 func main() {
@@ -22,11 +20,11 @@ func main() {
 
 	// Setup logger
 	var err error
-	logger, err = config.InitLogger("./app.log", debug)
+	_, err = config.InitLogger("./app.log", debug)
 	if err != nil {
 		log.Panicln(err)
 	}
-	defer logger.Sync()
+	defer config.Logger.Sync()
 
 	// Ensure the required data files on local FS are present
 	if err := db.EnsureDataDirs(); err != nil {
@@ -51,7 +49,7 @@ func main() {
 		debugBindings(gui)
 	}
 
-	logger.Info("Starting main loop..")
+	config.Logger.Info("Starting main loop..")
 	if err := gui.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}

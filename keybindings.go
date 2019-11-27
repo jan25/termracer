@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/config"
 )
 
 // DefaultBindings registers key bindings for default controls
@@ -53,16 +54,18 @@ func AfterRaceControls(g *gocui.Gui, isDefault bool) {
 
 func ctrlS(g *gocui.Gui, v *gocui.View) error {
 	err := app.OnRaceStart(g)
+	DuringRaceControls(g)
 	return err
 }
 
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
 	err := app.OnRaceFinish(g)
+	AfterRaceControls(g, false)
 	return err
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
-	logger.Info("Quitting termracer..")
+	config.Logger.Info("Quitting termracer..")
 	return gocui.ErrQuit
 }
 

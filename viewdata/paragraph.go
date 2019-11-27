@@ -3,6 +3,8 @@ package viewdata
 import (
 	"errors"
 	"strings"
+
+	"github.com/jan25/termracer/db"
 )
 
 // ParagraphData keeps track of state, data
@@ -18,9 +20,15 @@ type ParagraphData struct {
 	// line count in target paragraph
 	lineCount int
 
+	// Dimensions of the view
+	// FIXME: this shouldn't be available in viewdata
+	H int
+	W int
 	// For highlighted word; Line, Word number both start at 0
 	Line int
 	Word int
+	// Y position of View origin
+	Oy int
 
 	// Channels to communicate with wordeditor
 	wsender   chan WordValidateMsg
@@ -32,18 +40,14 @@ type ParagraphData struct {
 // NewParagraphData creates instance of ParagraphData
 func NewParagraphData() *ParagraphData {
 	return &ParagraphData{
-		Words:     getTargetWords(),
+		Words:     nil,
 		wordi:     0,
 		Mistyped:  false,
 		lineCount: 0, // FIXME
 		Line:      0,
 		Word:      0,
+		Oy:        0,
 	}
-}
-
-func getTargetWords() []string {
-	// TODO choose paragraph and do some work
-	return nil
 }
 
 // StartRace is called when a race starts
@@ -52,9 +56,34 @@ func (pd *ParagraphData) StartRace() error {
 		return errors.New("wsender or wreceiver is nil")
 	}
 
+	if err := pd.setTargetParagraph(); err != nil {
+		return err
+	}
+
 	pd.newDoneCh()
 
 	go pd.talkWithWordEditor()
+
+	return nil
+}
+
+func (pd *ParagraphData) setTargetParagraph() error {
+	para, err := db.ChooseParagraph()
+	if err != nil {
+		return err
+	}
+
+	pd.Words = strings.Fields(para)
+	for i, w := range pd.Words {
+		pd.Words[i] = strings.TrimSpace(w)
+	}
+
+	n := db.AddNewLines(pd.Words, pd.W-1)
+	pd.lineCount = n
+	pd.wordi = 0
+	pd.Oy = 0
+	pd.Line = 0
+	pd.Word = 0
 
 	return nil
 }
@@ -136,4 +165,19 @@ func (pd *ParagraphData) DoneCh() chan struct{} {
 		pd.newDoneCh()
 	}
 	return pd.done
+}
+
+// makeScroll auto scrolls the view during the race
+func (pd *ParagraphData) makeScroll() {
+	whenLinesLeft := 2
+	atWord, atLine := 2, (pd.H-1)-whenLinesLeft
+
+	if pd.Word != atWord {
+		return
+	}
+	currLine := pd.Line - pd.Oy
+	linesLeft := (pd.GetLineCount() - 1) - pd.Line
+	if currLine == atLine && linesLeft >= whenLinesLeft {
+		pd.Oy++
+	}
 }

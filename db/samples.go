@@ -1,76 +1,80 @@
 package db
 
 import (
-	"compress/gzip"
-	"encoding/json"
-	"errors"
-	"io/ioutil"
-	"net/http"
+	"math/rand"
 	"os"
 
-	"github.com/jan25/termracer/pkg/utils"
+	"github.com/jan25/termracer/config"
+	"github.com/jan25/termracer/pkg/wordwrap"
 )
 
-// Sample is a paragraph sample used for races
-type Sample struct {
-	Content string `json:"content"`
+// ChooseParagraph calls the server to fetch a paragraph
+func ChooseParagraph() (string, error) {
+	samplesFname, err := config.GetSamplesFilePath()
+	if err != nil {
+		return fallbackToDefaultParagraph(err)
+	}
+	samples, err := GetSamplesJSON(samplesFname)
+	if err != nil {
+		return fallbackToDefaultParagraph(err)
+	}
+
+	ri := rand.Int() % len(samples)
+	p := samples[ri]
+	return p.Content, nil
 }
 
-// GetSamplesJSON returns the JSON file contents
-func GetSamplesJSON(fname string) ([]Sample, error) {
-	_, err := os.Stat(fname)
+// TODO clean this after we're sure fallback isn't necessary
+func fallbackToDefaultParagraph(err error) (string, error) {
+	// FIXME: logs as below from legacy
+	// Logger.Info("Error reading paragraph from local FS " + err.Error())
+	// Logger.Info("Falling back to default paragraph")
+	return firstParagraph, nil
+}
+
+// GenerateLocalParagraphs checks if samples/use has > 0 paragraphs
+// available. If not tries to generate them
+func GenerateLocalParagraphs() error {
+	// TODO Add Loading... thingy before opening UI
+	samplesFname, err := config.GetSamplesFilePath()
+	if err != nil {
+		return err
+	}
+
+	_, err = os.Stat(samplesFname)
 	if err != nil && os.IsNotExist(err) {
-		return nil, err
-	}
-
-	bytes, err := ioutil.ReadFile(fname)
-	if err != nil {
-		return nil, err
-	}
-
-	var samples []Sample
-	if err = json.Unmarshal(bytes, &samples); err != nil {
-		return nil, err
-	}
-
-	return samples, nil
-}
-
-// DownloadSamplesToLocalFS downloads stores samples.json file locally
-func DownloadSamplesToLocalFS(fname string) error {
-	url := "https://github.com/jan25/termracer/raw/master/data/samples.gz"
-	bytes, err := DownloadGzipFile(url)
-	if err != nil {
+		err = DownloadSamplesToLocalFS(samplesFname)
 		return err
 	}
-	if err = utils.CreateFileIfNotExists(fname); err != nil {
-		return err
-	}
-	return utils.WriteToFile(fname, bytes)
+
+	// We already have the file generated
+	return nil
 }
 
-// DownloadGzipFile downloads gzip file from a remote URL
-func DownloadGzipFile(url string) ([]byte, error) {
-	client := new(http.Client)
-	request, err := http.NewRequest("GET", url, nil)
-	request.Header.Add("Accept-Encoding", "gzip") // http will auto unzip
-
-	resp, err := client.Do(request)
-	if err != nil {
-		return nil, errors.New("Failed to GET remote file. " + err.Error())
-	}
-	defer resp.Body.Close()
-
-	reader, err := gzip.NewReader(resp.Body)
-	if err != nil {
-		return nil, errors.New("Failed to create gzip.NewReader. " + err.Error())
-	}
-	defer reader.Close()
-
-	bytes, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return nil, errors.New("Failed to read response to bytes. " + err.Error())
+// AddNewLines adds new line char to certian words
+// to wrap and align the words into seperate lines
+func AddNewLines(words []string, width int) int {
+	processed := []wordwrap.Word{}
+	for _, w := range words {
+		processed = append(processed, wordwrap.Word{
+			Len: len(w),
+		})
 	}
 
-	return bytes, nil
+	wordwrap.Wrap(processed, width)
+	lines := 1
+	for i, w := range processed {
+		if w.Wrap {
+			words[i] = words[i] + "\n"
+			lines++
+		}
+	}
+	return lines
 }
+
+const firstParagraph = `
+She sank more and more into uneasy delirium. At times she shuddered,
+turned her eyes from side to side, recognised everyone for a minute,
+but at once sank into delirium again. Her breathing was hoarse and
+difficult, there was a sort of rattle in her throat.
+`

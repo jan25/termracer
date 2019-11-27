@@ -6,7 +6,7 @@ import (
 	"github.com/jan25/termracer/views"
 )
 
-// AppData wraps the all view data structs in the app
+// AppData wraps all view's data structs in the app
 type AppData struct {
 	paragraph *viewdata.ParagraphData
 	editor    *viewdata.WordEditorData

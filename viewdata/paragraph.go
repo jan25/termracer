@@ -92,7 +92,7 @@ func (pd *ParagraphData) talkWithWordEditor() {
 }
 
 func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
-	s := strings.TrimSuffix(msg.CurrentTyped, " ") // trim any suffix at end
+	s := strings.TrimSuffix(msg.CurrentTyped, " ") // trim single space in suffix
 	cw := pd.currentWord()
 
 	correct := strings.HasPrefix(s, cw)
@@ -105,7 +105,7 @@ func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
 	pd.wsender <- WordValidateMsg{
 		Correct:      correct,
 		IsNewWord:    newWord,
-		CurrentTyped: setTyped,
+		CurrentTyped: setTyped, // TODO remove this one and add end of race
 	}
 
 	pd.Mistyped = correct

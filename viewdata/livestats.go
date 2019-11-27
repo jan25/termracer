@@ -127,6 +127,9 @@ func (ls *LiveStats) Wpm() (int, error) {
 
 // Accuracy of typing during a race
 func (ls *LiveStats) Accuracy() (float64, error) {
+	if ls.correct+ls.incorrect == 0 {
+		return 0, nil // FIXME: accuracy is 0 on race start, should be '-'
+	}
 	return utils.CalculateAccuracy(ls.correct+ls.incorrect, ls.incorrect)
 }
 

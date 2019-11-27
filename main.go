@@ -5,15 +5,14 @@ import (
 	"log"
 
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/db"
-	"github.com/jan25/termracer/pkg/utils"
 	"go.uber.org/zap"
 )
 
 var (
-	// Logger is a global file logger
-	Logger *zap.Logger
 	app    *AppData
+	logger *zap.Logger
 )
 
 func main() {
@@ -23,11 +22,11 @@ func main() {
 
 	// Setup logger
 	var err error
-	Logger, err = utils.InitLogger("./app.log", debug)
+	logger, err = config.InitLogger("./app.log", debug)
 	if err != nil {
 		log.Panicln(err)
 	}
-	defer Logger.Sync()
+	defer logger.Sync()
 
 	// Ensure the required data files on local FS are present
 	if err := db.EnsureDataDirs(); err != nil {
@@ -52,7 +51,7 @@ func main() {
 		debugBindings(gui)
 	}
 
-	Logger.Info("Starting main loop..")
+	logger.Info("Starting main loop..")
 	if err := gui.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}

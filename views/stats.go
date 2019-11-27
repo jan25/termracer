@@ -21,21 +21,27 @@ type StatsView struct {
 	w, h int
 
 	// Stats history data
-	HistoryData viewdata.Stats
+	HistoryData *viewdata.Stats
 
 	// Live Stats for race in progress
-	LiveRaceData viewdata.LiveStats
+	LiveRaceData *viewdata.LiveStats
 }
 
 // NewStatsView creates brand new StatsView instance
-func NewStatsView(name string, x, y, w, h int) *StatsView {
-	return &StatsView{
-		name: name,
-		x:    x,
-		y:    y,
-		w:    w,
-		h:    h,
+func NewStatsView(name string, x, y, w, h int) (*StatsView, error) {
+	hd, err := viewdata.NewStatsHistory()
+	if err != nil {
+		return nil, err
 	}
+	return &StatsView{
+		name:         name,
+		x:            x,
+		y:            y,
+		w:            w,
+		h:            h,
+		HistoryData:  hd,
+		LiveRaceData: viewdata.NewLiveStats(),
+	}, nil
 }
 
 // Layout manager for Stats View
@@ -102,8 +108,14 @@ func (sv *StatsView) renderLiveRaceData(v *gocui.View, g *gocui.Gui) error {
 	}
 	fmt.Fprintf(v, "%02d:%02d \n", t.Mins, t.Secs)
 
-	wpm := sv.LiveRaceData.Wpm()
-	acc := sv.LiveRaceData.Accuracy()
+	wpm, err := sv.LiveRaceData.Wpm()
+	if err != nil {
+		return err
+	}
+	acc, err := sv.LiveRaceData.Accuracy()
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(v, "wpm %d \nAccuracy %.2f%% \n", wpm, acc)
 
 	return nil

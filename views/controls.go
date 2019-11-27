@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/viewdata"
 )
 
 // ControlsView represents static
@@ -16,18 +17,18 @@ type ControlsView struct {
 	x, y int
 	w, h int
 
-	// content to display
-	content string
+	Data *viewdata.ControlsData
 }
 
-func newControls(name string, x, y int, w, h int) *ControlsView {
+// NewControls creates new instance of ControlsView
+func NewControls(name string, x, y int, w, h int) *ControlsView {
 	return &ControlsView{
-		name:    name,
-		x:       x,
-		y:       y,
-		w:       w,
-		h:       h,
-		content: defaultContent,
+		name: name,
+		x:    x,
+		y:    y,
+		w:    w,
+		h:    h,
+		Data: viewdata.NewControlsData(),
 	}
 }
 
@@ -37,32 +38,9 @@ func (c *ControlsView) Layout(g *gocui.Gui) error {
 	if err != nil && err != gocui.ErrUnknownView {
 		return err
 	}
-	v.Title = title
+	v.Title = "Controls"
 
 	v.Clear()
-	fmt.Fprintf(v, "%s", c.content)
+	fmt.Fprintf(v, "%s", c.Data.Content)
 	return nil
 }
-
-// RaceModeControlsContent sets up controls
-// for during a race
-func (c *ControlsView) RaceModeControlsContent() {
-	c.content = raceModeContent
-}
-
-// DefaultControlsContent sets up controls
-// when no race in progress
-func (c *ControlsView) DefaultControlsContent() {
-	c.content = defaultContent
-}
-
-const title = "Controls"
-
-const defaultContent = `
-Ctrl+s		New race
-Ctrl+j/k	Scroll
-Ctrl+c 		Quit`
-
-const raceModeContent = `
-Ctrl+e End race
-Ctrl+c Quit`

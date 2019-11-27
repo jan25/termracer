@@ -15,7 +15,7 @@ type LiveStats struct {
 	incorrect int
 
 	// stream of messages from word editor
-	m chan StatMsg
+	wreceiver chan StatMsg
 
 	// done channel
 	done chan struct{}
@@ -32,17 +32,18 @@ type StatMsg struct {
 }
 
 // NewLiveStats creates new instance of LiveStats
-func NewLiveStats(m *chan StatMsg) *LiveStats {
+func NewLiveStats() *LiveStats {
 	return &LiveStats{
 		correct:   0,
 		incorrect: 0,
-		m:         *m,
+		IsActive:  false, // default: no race in progress at app startup
+		timer:     utils.NewTimer(),
 	}
 }
 
-// Start is called on new race start
-func (ls *LiveStats) Start() error {
-	if ls.m == nil {
+// StartRace starts a new race
+func (ls *LiveStats) StartRace() error {
+	if ls.wreceiver == nil {
 		return errors.New("stream channel is nil")
 	}
 
@@ -50,6 +51,7 @@ func (ls *LiveStats) Start() error {
 		return errors.New("Failed to start timer: " + err.Error())
 	}
 
+	ls.newDoneCh()
 	go ls.listenToWordEditor()
 
 	ls.IsActive = true
@@ -68,15 +70,20 @@ func (ls *LiveStats) TryStartTicker(g *gocui.Gui) {
 	go utils.Tick(ls.timer, g)
 }
 
+// SetChannels sets channels for communication
+func (ls *LiveStats) SetChannels(wreceiver chan StatMsg) {
+	ls.wreceiver = wreceiver
+}
+
 func (ls *LiveStats) listenToWordEditor() {
-	defer close(ls.m)
+	defer close(ls.wreceiver)
 
 	for {
 		select {
 		case <-ls.getDoneCh():
 			return
 		default:
-			msg := <-ls.m
+			msg := <-ls.wreceiver
 			if msg.IsMistyped {
 				ls.incorrect++
 			} else {
@@ -86,8 +93,8 @@ func (ls *LiveStats) listenToWordEditor() {
 	}
 }
 
-// Finish is called at end of a race
-func (ls *LiveStats) Finish() error {
+// FinishRace finishes a ongoing race
+func (ls *LiveStats) FinishRace() error {
 	var err error
 	select {
 	case <-ls.getDoneCh():
@@ -110,13 +117,25 @@ func (ls *LiveStats) ElapsedTime() (*utils.TimeFormatted, error) {
 }
 
 // Wpm is words per minute stat from beginning of a race
-func (ls *LiveStats) Wpm() int {
-	return 0
+func (ls *LiveStats) Wpm() (int, error) {
+	secs, err := ls.timer.ElapsedTimeInSecs()
+	if err != nil {
+		return 0, err
+	}
+	wpm := utils.CalculateWpm(ls.correct, secs)
+	return int(wpm), nil
 }
 
 // Accuracy of typing during a race
-func (ls *LiveStats) Accuracy() float32 {
-	return 0
+func (ls *LiveStats) Accuracy() (float64, error) {
+	if ls.correct+ls.incorrect == 0 {
+		return 0, nil // FIXME: accuracy is 0 on race start, should be '-'
+	}
+	return utils.CalculateAccuracy(ls.correct+ls.incorrect, ls.incorrect)
+}
+
+func (ls *LiveStats) newDoneCh() {
+	ls.done = make(chan struct{})
 }
 
 func (ls *LiveStats) getDoneCh() chan struct{} {

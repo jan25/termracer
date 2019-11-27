@@ -1,5 +1,9 @@
 package viewdata
 
+import "errors"
+
+import "github.com/jan25/gocui"
+
 // MaxWordLen is maximum a word can go in editor view
 const MaxWordLen int = 25
 
@@ -27,12 +31,54 @@ type WordValidateMsg struct {
 	IsNewWord    bool
 }
 
+// NewWordEditorData creates new WordEditorData instance
+func NewWordEditorData() *WordEditorData {
+	return &WordEditorData{
+		CurrentTyped: "",
+		IsMistyped:   false,
+	}
+}
+
+// StartRace starts a new race
+func (w *WordEditorData) StartRace(g *gocui.Gui, viewName string) error {
+	if w.psender == nil || w.preceiver == nil || w.rsender == nil {
+		return errors.New("Channel for communication is nil")
+	}
+
+	w.newDoneCh()
+	w.activateEditor(g, viewName)
+	go w.talkWithParagraph()
+	return nil
+}
+
+// FinishRace finishes a ongoing race
+func (w *WordEditorData) FinishRace(g *gocui.Gui) error {
+	w.CurrentTyped = ""
+	w.IsMistyped = false
+
+	select {
+	case <-w.DoneCh():
+		return errors.New("race already stopped")
+	default:
+		w.deactivateEditor(g)
+		close(w.DoneCh())
+	}
+	return nil
+}
+
+// SetChannels sets channels for communication with other components during a race
+func (w *WordEditorData) SetChannels(psender, preceiver chan WordValidateMsg, rsender chan StatMsg) {
+	w.psender = psender
+	w.preceiver = preceiver
+	w.rsender = rsender
+}
+
 func (w *WordEditorData) talkWithParagraph() {
-	defer close(w.preceiver)
+	defer close(w.preceiver) // FIXME: figure who closes what
 
 	for {
 		select {
-		case <-w.getDoneCh():
+		case <-w.DoneCh():
 			return
 		default:
 			msg := <-w.preceiver
@@ -63,9 +109,23 @@ func (w *WordEditorData) OnChangeMsg(s string) {
 	}
 }
 
-func (w *WordEditorData) getDoneCh() chan struct{} {
+func (w *WordEditorData) newDoneCh() {
+	w.done = make(chan struct{})
+}
+
+// DoneCh returns reference to done channel
+func (w *WordEditorData) DoneCh() chan struct{} {
 	if w.done == nil {
-		w.done = make(chan struct{})
+		w.newDoneCh()
 	}
 	return w.done
+}
+
+func (w *WordEditorData) activateEditor(g *gocui.Gui, viewName string) {
+	g.SetCurrentView(viewName)
+	g.Cursor = true
+}
+
+func (w *WordEditorData) deactivateEditor(g *gocui.Gui) {
+	g.Cursor = false
 }

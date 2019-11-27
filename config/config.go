@@ -1,4 +1,4 @@
-package main
+package config
 
 import "github.com/jan25/termracer/pkg/utils"
 

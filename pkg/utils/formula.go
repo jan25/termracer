@@ -7,8 +7,8 @@ import (
 
 // CalculateWpm calculates words per minute
 // based on words typed so far and time elapsed
-func CalculateWpm(countw int, secs int) int {
-	return (60 * countw) / secs
+func CalculateWpm(countw int, secs float64) int {
+	return int((60 * float64(countw)) / secs)
 }
 
 // CalculateAccuracy calculates accuracy in a race

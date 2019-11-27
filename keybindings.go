@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/config"
 )
 
 // DefaultBindings registers key bindings for default controls
@@ -37,10 +38,10 @@ func AfterRaceControls(g *gocui.Gui, isDefault bool) {
 	if err := g.SetKeybinding("", gocui.KeyCtrlS, gocui.ModNone, ctrlS); err != nil {
 		log.Panicln(err)
 	}
-	if err := g.SetKeybinding("", gocui.KeyCtrlJ, gocui.ModNone, stats.ScrollUp); err != nil {
+	if err := g.SetKeybinding("", gocui.KeyCtrlJ, gocui.ModNone, app.HistoryScrollUp); err != nil {
 		log.Panicln(err)
 	}
-	if err := g.SetKeybinding("", gocui.KeyCtrlK, gocui.ModNone, stats.ScrollDown); err != nil {
+	if err := g.SetKeybinding("", gocui.KeyCtrlK, gocui.ModNone, app.HistoryScrollDown); err != nil {
 		log.Panicln(err)
 	}
 
@@ -52,37 +53,30 @@ func AfterRaceControls(g *gocui.Gui, isDefault bool) {
 }
 
 func ctrlS(g *gocui.Gui, v *gocui.View) error {
+	err := app.OnRaceStart(g)
 	DuringRaceControls(g)
-	stats.StartRace()
-	paragraph.Init()
-	word.Init()
-	controls.RaceModeControlsContent()
-
-	return nil
+	return err
 }
 
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
+	err := app.OnRaceFinish(g)
 	AfterRaceControls(g, false)
-	paragraph.Reset()
-	word.Reset()
-	stats.StopRace(false)
-	controls.DefaultControlsContent()
-
-	return nil
+	return err
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
-	Logger.Info("Quitting termracer..")
+	config.Logger.Info("Quitting termracer..")
 	return gocui.ErrQuit
 }
 
 func debugBindings(g *gocui.Gui) {
-	if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, advanceWord); err != nil {
-		log.Panicln(err) // FIXME This will crash the app at end of paragraph
-	}
+	// TODO
+	// if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, advanceWord); err != nil {
+	// 	log.Panicln(err) // FIXME This will crash the app at end of paragraph
+	// }
 }
 
-// For debugging in the UI
-func advanceWord(g *gocui.Gui, v *gocui.View) error {
-	return paragraph.Advance()
-}
+// FIXME: For debugging in the UI
+// func advanceWord(g *gocui.Gui, v *gocui.View) error {
+// 	return paragraph.Advance()
+// }

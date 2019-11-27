@@ -18,24 +18,25 @@ type ParagraphView struct {
 	x, y int
 	w, h int
 
-	// Y position of View origin
-	Oy int
-
 	// done channel
 	done chan struct{}
 
 	// Data stores content of the view
-	Data viewdata.ParagraphData // FIXME: this is nil, find a way to set this
+	Data *viewdata.ParagraphData
 }
 
-func newParagraphView(name string, x, y int, w, h int) *ParagraphView {
+// NewParagraphView creates new instance of ParagraphView
+func NewParagraphView(name string, x, y int, w, h int) *ParagraphView {
+	pd := viewdata.NewParagraphData()
+	pd.H = h
+	pd.W = w
 	return &ParagraphView{
 		name: name,
 		x:    x,
 		y:    y,
 		w:    w,
 		h:    h,
-		Oy:   0,
+		Data: pd,
 	}
 }
 
@@ -47,8 +48,8 @@ func (pv *ParagraphView) Layout(g *gocui.Gui) error {
 	}
 
 	select {
-	case <-pv.getDoneCh(): // FIXME move the done chan to pv.Data
-		// channel closed
+	case <-pv.Data.DoneCh():
+		// no race in progress
 		v.Clear()
 	default:
 		pv.DrawView(v)
@@ -57,18 +58,11 @@ func (pv *ParagraphView) Layout(g *gocui.Gui) error {
 	return nil
 }
 
-func (pv *ParagraphView) getDoneCh() chan struct{} {
-	if pv.done == nil {
-		pv.done = make(chan struct{})
-	}
-	return pv.done
-}
-
 // DrawView renders the ParagraphView
 func (pv *ParagraphView) DrawView(v *gocui.View) {
 	v.Clear()
 
-	v.SetOrigin(0, pv.Oy) // scroll
+	v.SetOrigin(0, pv.Data.Oy) // scroll
 
 	pd := pv.Data
 	for i, w := range pd.Words {
@@ -105,21 +99,5 @@ func (pv *ParagraphView) printWord(v *gocui.View, w string, highlight bool, done
 	if !strings.HasSuffix(w, "\n") {
 		// Space between words in a paragraph
 		fmt.Fprint(v, " ")
-	}
-}
-
-// FIXME unused method. Maybe call it in Layout() ?
-func (pv *ParagraphView) makeScroll() {
-	whenLinesLeft := 2
-	atWord, atLine := 2, (pv.h-1)-whenLinesLeft
-
-	pd := pv.Data
-	if pd.Word != atWord {
-		return
-	}
-	currLine := pd.Line - pv.Oy
-	linesLeft := (pd.GetLineCount() - 1) - pd.Line
-	if currLine == atLine && linesLeft >= whenLinesLeft {
-		pv.Oy++
 	}
 }

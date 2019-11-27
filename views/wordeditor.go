@@ -23,13 +23,15 @@ type WordView struct {
 	Data *viewdata.WordEditorData
 }
 
-func newWordView(name string, x, y int, w, h int) *WordView {
+// NewWordView creates new instance of WordView
+func NewWordView(name string, x, y int, w, h int) *WordView {
 	wv := &WordView{
 		name: name,
 		x:    x,
 		y:    y,
 		w:    w,
 		h:    h,
+		Data: viewdata.NewWordEditorData(),
 	}
 	wv.e = wv.newWordEditor() // This looks wierd, doesn't it?
 	return wv
@@ -43,20 +45,13 @@ func (w *WordView) Layout(g *gocui.Gui) error {
 	}
 
 	select {
-	case <-w.getDoneCh(): // FIXME move the done chan to w.Data
-		// channel closed
+	case <-w.Data.DoneCh():
+		// no race in progress
 		w.clearEditor(v)
 	default:
 		w.initEditor(v, &w.e)
 	}
 	return nil
-}
-
-func (w *WordView) getDoneCh() chan struct{} {
-	if w.done == nil {
-		w.done = make(chan struct{})
-	}
-	return w.done
 }
 
 func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor) {

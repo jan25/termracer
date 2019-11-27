@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/db"
 	"github.com/jan25/termracer/pkg/utils"
 	"go.uber.org/zap"
 )
@@ -29,7 +30,7 @@ func main() {
 	defer Logger.Sync()
 
 	// Ensure the required data files on local FS are present
-	if err := ensureDataDirs(); err != nil {
+	if err := db.EnsureDataDirs(); err != nil {
 		log.Panicln(err)
 	}
 

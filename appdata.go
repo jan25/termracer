@@ -104,3 +104,13 @@ func (ad *AppData) OnRaceFinish(g *gocui.Gui) error {
 
 	return nil
 }
+
+// HistoryScrollUp scrolls the start history list
+func (ad *AppData) HistoryScrollUp(g *gocui.Gui, v *gocui.View) error {
+	return ad.history.ScrollUp(g, v)
+}
+
+// HistoryScrollDown scrolls the start history list
+func (ad *AppData) HistoryScrollDown(g *gocui.Gui, v *gocui.View) error {
+	return ad.history.ScrollDown(g, v)
+}

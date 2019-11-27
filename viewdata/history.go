@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/pkg/utils"
 )
@@ -129,5 +130,29 @@ func (s *Stats) LoadHistory() error {
 	// Logger.Info("Finished loading records from file", zap.Int("records", len(records)))
 	s.Selected = len(s.List) - 1
 
+	return nil
+}
+
+// ScrollDown is a keybinding
+// increments selected stat index
+func (s *Stats) ScrollDown(g *gocui.Gui, v *gocui.View) error {
+	if s.Selected+1 < len(s.List) {
+		s.Selected++
+	} else {
+		config.Logger.Info("End of history reached. Can not scroll further up")
+	}
+	// just to adhere to KeyBinding handler interface
+	return nil
+}
+
+// ScrollUp is a keybinding
+// decrements selected stat index
+func (s *Stats) ScrollUp(g *gocui.Gui, v *gocui.View) error {
+	if s.Selected > 0 {
+		s.Selected--
+	} else {
+		config.Logger.Info("Top of history reached. Can not scroll further down")
+	}
+	// just to adhere to KeyBinding handler interface
 	return nil
 }

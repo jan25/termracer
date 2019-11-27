@@ -37,12 +37,12 @@ func AfterRaceControls(g *gocui.Gui, isDefault bool) {
 	if err := g.SetKeybinding("", gocui.KeyCtrlS, gocui.ModNone, ctrlS); err != nil {
 		log.Panicln(err)
 	}
-	// if err := g.SetKeybinding("", gocui.KeyCtrlJ, gocui.ModNone, stats.ScrollUp); err != nil {
-	// 	log.Panicln(err)
-	// }
-	// if err := g.SetKeybinding("", gocui.KeyCtrlK, gocui.ModNone, stats.ScrollDown); err != nil {
-	// 	log.Panicln(err)
-	// }
+	if err := g.SetKeybinding("", gocui.KeyCtrlJ, gocui.ModNone, app.HistoryScrollUp); err != nil {
+		log.Panicln(err)
+	}
+	if err := g.SetKeybinding("", gocui.KeyCtrlK, gocui.ModNone, app.HistoryScrollDown); err != nil {
+		log.Panicln(err)
+	}
 
 	if !isDefault {
 		if err := g.DeleteKeybinding("", gocui.KeyCtrlE, gocui.ModNone); err != nil {

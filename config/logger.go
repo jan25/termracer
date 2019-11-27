@@ -12,7 +12,8 @@ var Logger *zap.Logger
 func InitLogger(fpath string, debug bool) (*zap.Logger, error) {
 	if !debug {
 		// no-op logger
-		return zap.New(nil), nil
+		Logger = zap.New(nil)
+		return Logger, nil
 	}
 
 	cfg := zap.NewProductionConfig()
@@ -21,6 +22,6 @@ func InitLogger(fpath string, debug bool) (*zap.Logger, error) {
 	}
 
 	cfg.OutputPaths = []string{fpath}
-	l, _ := cfg.Build()
-	return l, nil
+	Logger, _ := cfg.Build()
+	return Logger, nil
 }

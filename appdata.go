@@ -12,6 +12,7 @@ type AppData struct {
 	editor    *viewdata.WordEditorData
 	history   *viewdata.Stats
 	stats     *viewdata.LiveStats
+	controls  *viewdata.ControlsData
 }
 
 // InitializeAppData creates views and initialises AppData
@@ -32,6 +33,7 @@ func InitializeAppData(g *gocui.Gui) (*AppData, error) {
 	ad.history = stats.HistoryData
 
 	controls := views.NewControls(controlsName, topX+paraW+pad, topY+statsH+pad, controlsW, controlsH)
+	ad.controls = controls.Data
 
 	g.SetManager(para, word, stats, controls)
 
@@ -56,7 +58,7 @@ func (ad *AppData) OnRaceStart() error {
 	if err := ad.stats.StartRace(); err != nil {
 		return err
 	}
-	// TODO: do the above for controls view
+	ad.controls.StartRace()
 
 	ad.stats.IsActive = !ad.stats.IsActive
 	ad.history.IsActive = !ad.history.IsActive
@@ -77,7 +79,7 @@ func (ad *AppData) OnRaceFinish() error {
 	if err := ad.stats.FinishRace(); err != nil {
 		return err
 	}
-	// TODO: finish race for controls too
+	ad.controls.DefaultControls()
 
 	ad.stats.IsActive = !ad.stats.IsActive
 	ad.history.IsActive = !ad.history.IsActive

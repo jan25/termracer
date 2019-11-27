@@ -6,6 +6,24 @@ import (
 	"github.com/jan25/termracer/views"
 )
 
+const (
+	statsName    = "stats"
+	paraName     = "para"
+	wordName     = "word"
+	controlsName = "controls"
+)
+
+var (
+	paraW, paraH = 60, 8
+	wordW, wordH = 60, 2
+
+	statsW, statsH       = 20, 6
+	controlsW, controlsH = 20, 4
+
+	topX, topY = 1, 1
+	pad        = 1
+)
+
 // AppData wraps all view's data structs in the app
 type AppData struct {
 	paragraph *viewdata.ParagraphData

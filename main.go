@@ -9,28 +9,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	statsName    = "stats"
-	paraName     = "para"
-	wordName     = "word"
-	controlsName = "controls"
-)
-
 var (
 	// Logger is a global file logger
-	Logger    *zap.Logger
-	app *AppData
-)
-
-var (
-	paraW, paraH = 60, 8
-	wordW, wordH = 60, 2
-
-	statsW, statsH       = 20, 6
-	controlsW, controlsH = 20, 4
-
-	topX, topY = 1, 1
-	pad        = 1
+	Logger *zap.Logger
+	app    *AppData
 )
 
 func main() {

@@ -2,6 +2,8 @@ package viewdata
 
 import "errors"
 
+import "github.com/jan25/gocui"
+
 // MaxWordLen is maximum a word can go in editor view
 const MaxWordLen int = 25
 
@@ -38,18 +40,19 @@ func NewWordEditorData() *WordEditorData {
 }
 
 // StartRace starts a new race
-func (w *WordEditorData) StartRace() error {
+func (w *WordEditorData) StartRace(g *gocui.Gui, viewName string) error {
 	if w.psender == nil || w.preceiver == nil || w.rsender == nil {
 		return errors.New("Channel for communication is nil")
 	}
 
 	w.newDoneCh()
+	w.activateEditor(g, viewName)
 	go w.talkWithParagraph()
 	return nil
 }
 
 // FinishRace finishes a ongoing race
-func (w *WordEditorData) FinishRace() error {
+func (w *WordEditorData) FinishRace(g *gocui.Gui) error {
 	w.CurrentTyped = ""
 	w.IsMistyped = false
 
@@ -57,6 +60,7 @@ func (w *WordEditorData) FinishRace() error {
 	case <-w.DoneCh():
 		return errors.New("race already stopped")
 	default:
+		w.deactivateEditor(g)
 		close(w.DoneCh())
 	}
 	return nil
@@ -115,4 +119,13 @@ func (w *WordEditorData) DoneCh() chan struct{} {
 		w.newDoneCh()
 	}
 	return w.done
+}
+
+func (w *WordEditorData) activateEditor(g *gocui.Gui, viewName string) {
+	g.SetCurrentView(viewName)
+	g.Cursor = true
+}
+
+func (w *WordEditorData) deactivateEditor(g *gocui.Gui) {
+	g.Cursor = false
 }

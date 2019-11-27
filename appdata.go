@@ -59,7 +59,7 @@ func InitializeAppData(g *gocui.Gui) (*AppData, error) {
 }
 
 // OnRaceStart is called at start of a new race
-func (ad *AppData) OnRaceStart() error {
+func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
 	paraToWord := make(chan viewdata.WordValidateMsg)
 	wordToPara := make(chan viewdata.WordValidateMsg)
 	wordToStats := make(chan viewdata.StatMsg)
@@ -73,7 +73,7 @@ func (ad *AppData) OnRaceStart() error {
 	if err := ad.paragraph.StartRace(); err != nil {
 		return err
 	}
-	if err := ad.editor.StartRace(); err != nil {
+	if err := ad.editor.StartRace(g, wordName); err != nil {
 		return err
 	}
 	if err := ad.stats.StartRace(); err != nil {
@@ -87,11 +87,11 @@ func (ad *AppData) OnRaceStart() error {
 // OnRaceFinish at end of a race:
 // - when typing is finished
 // - when user stops the race
-func (ad *AppData) OnRaceFinish() error {
+func (ad *AppData) OnRaceFinish(g *gocui.Gui) error {
 	if err := ad.paragraph.FinishRace(); err != nil {
 		return err
 	}
-	if err := ad.editor.FinishRace(); err != nil {
+	if err := ad.editor.FinishRace(g); err != nil {
 		return err
 	}
 	if err := ad.stats.FinishRace(); err != nil {

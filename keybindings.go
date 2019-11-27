@@ -52,12 +52,12 @@ func AfterRaceControls(g *gocui.Gui, isDefault bool) {
 }
 
 func ctrlS(g *gocui.Gui, v *gocui.View) error {
-	err := app.OnRaceStart()
+	err := app.OnRaceStart(g)
 	return err
 }
 
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
-	err := app.OnRaceFinish()
+	err := app.OnRaceFinish(g)
 	return err
 }
 

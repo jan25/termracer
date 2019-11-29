@@ -15,12 +15,12 @@ var (
 
 func main() {
 	// Flags
-	debug := *flag.Bool("debug", false, "flag for debug mode")
+	debug := flag.Bool("debug", false, "flag for debug mode")
 	flag.Parse()
 
 	// Setup logger
 	var err error
-	_, err = config.InitLogger("./app.log", debug)
+	_, err = config.InitLogger(*debug)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -45,7 +45,7 @@ func main() {
 	// Default key bindings on startup
 	DefaultBindings(gui)
 
-	if debug {
+	if *debug {
 		debugBindings(gui)
 	}
 

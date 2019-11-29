@@ -9,7 +9,12 @@ import (
 var Logger *zap.Logger
 
 // InitLogger initalizes a logger
-func InitLogger(fpath string, debug bool) (*zap.Logger, error) {
+func InitLogger(debug bool) (*zap.Logger, error) {
+	fpath, err := GetLogsFilePath()
+	if err != nil {
+		return nil, err
+	}
+
 	if !debug {
 		// no-op logger
 		Logger = zap.New(nil)
@@ -22,6 +27,6 @@ func InitLogger(fpath string, debug bool) (*zap.Logger, error) {
 	}
 
 	cfg.OutputPaths = []string{fpath}
-	Logger, _ := cfg.Build()
+	Logger, _ = cfg.Build()
 	return Logger, nil
 }

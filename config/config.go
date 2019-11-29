@@ -14,6 +14,9 @@ const (
 
 	// HistoryFile is name of file to store race history data
 	HistoryFile = "/racehistory.csv"
+
+	// DebugLogs is path for logs for debugging purposes
+	DebugLogs = "/app.log"
 )
 
 // GetSamplesUseDir returns path to samples/use
@@ -51,4 +54,13 @@ func GetTopLevelDir() (string, error) {
 		return "", err
 	}
 	return home + TopLevelDir, nil
+}
+
+// GetLogsFilePath is absolute path to log file
+func GetLogsFilePath() (string, error) {
+	tld, err := GetTopLevelDir()
+	if err != nil {
+		return "", err
+	}
+	return tld + DebugLogs, nil
 }

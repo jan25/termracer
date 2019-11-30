@@ -1,16 +1,20 @@
 package viewdata
 
-import "errors"
+import (
+	"errors"
 
-import "github.com/jan25/gocui"
+	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/config"
+	"go.uber.org/zap"
+)
 
 // MaxWordLen is maximum a word can go in editor view
 const MaxWordLen int = 25
 
 // WordEditorData stores content for word editor view
 type WordEditorData struct {
-	// CurrentTyped is the word currently typed in editor
-	CurrentTyped string
+	// ShouldClearEditor is set for every new target word
+	ShouldClearEditor bool
 	// use to check current word is mistyped
 	IsMistyped bool
 
@@ -26,16 +30,16 @@ type WordEditorData struct {
 
 // WordValidateMsg is used to communicate with ParagraphData
 type WordValidateMsg struct {
-	CurrentTyped string
-	Correct      bool
-	IsNewWord    bool
+	TypedWord  string
+	Correct    bool
+	IsNextWord bool
 }
 
 // NewWordEditorData creates new WordEditorData instance
 func NewWordEditorData() *WordEditorData {
 	return &WordEditorData{
-		CurrentTyped: "",
-		IsMistyped:   false,
+		ShouldClearEditor: true,
+		IsMistyped:        false,
 	}
 }
 
@@ -53,12 +57,12 @@ func (w *WordEditorData) StartRace(g *gocui.Gui, viewName string) error {
 
 // FinishRace finishes a ongoing race
 func (w *WordEditorData) FinishRace(g *gocui.Gui) error {
-	w.CurrentTyped = ""
+	w.ShouldClearEditor = true
 	w.IsMistyped = false
 
 	select {
 	case <-w.DoneCh():
-		return errors.New("race already stopped")
+		return errors.New("Race already stopped")
 	default:
 		w.deactivateEditor(g)
 		close(w.DoneCh())
@@ -89,23 +93,22 @@ func (w *WordEditorData) talkWithParagraph() {
 }
 
 func (w *WordEditorData) understandMsg(msg WordValidateMsg) {
-	w.IsMistyped = msg.Correct
-	w.CurrentTyped = msg.CurrentTyped
+	w.IsMistyped = !msg.Correct
+	w.ShouldClearEditor = msg.IsNextWord
 }
 
 func (w *WordEditorData) sendStatsUpdate(msg WordValidateMsg) {
 	w.rsender <- StatMsg{
-		IsMistyped: msg.Correct,
+		IsMistyped: !msg.Correct,
 	}
 }
 
 // OnChangeMsg sends a message to paragraph for onchange event
 // TODO should this return a error for when psender is closed?
 func (w *WordEditorData) OnChangeMsg(s string) {
+	config.Logger.Info("OnChangeMsg", zap.String("s", s))
 	w.psender <- WordValidateMsg{
-		CurrentTyped: s,
-		Correct:      true,
-		IsNewWord:    false,
+		TypedWord: s,
 	}
 }
 

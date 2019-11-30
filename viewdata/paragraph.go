@@ -4,7 +4,9 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/db"
+	"go.uber.org/zap"
 )
 
 // ParagraphData keeps track of state, data
@@ -121,27 +123,39 @@ func (pd *ParagraphData) talkWithWordEditor() {
 }
 
 func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
-	s := strings.TrimSuffix(msg.CurrentTyped, " ") // trim single space in suffix
+	s := strings.TrimSuffix(msg.TypedWord, " ") // trim single space in suffix
 	cw := pd.currentWord()
 
-	correct := strings.HasPrefix(s, cw)
-	newWord := (s == cw) && strings.HasSuffix(msg.CurrentTyped, " ")
-	setTyped := msg.CurrentTyped
-	if newWord {
-		setTyped = "" // resets editor
-	}
+	correct := strings.HasPrefix(cw, s)
+	newWord := (s == cw) && strings.HasSuffix(msg.TypedWord, " ")
 
 	pd.wsender <- WordValidateMsg{
-		Correct:      correct,
-		IsNewWord:    newWord,
-		CurrentTyped: setTyped, // TODO remove this one and add end of race
+		Correct:    correct,
+		IsNextWord: newWord,
 	}
 
-	pd.Mistyped = correct
+	pd.Mistyped = !correct
+	config.Logger.Info("setting pd.Mistyped", zap.Bool("mistyped", pd.Mistyped), zap.String("s", s), zap.String("cw", cw))
+
+	if newWord {
+		pd.tryAdvanceWord()
+	}
+}
+
+func (pd *ParagraphData) tryAdvanceWord() {
+	config.Logger.Info("Advancing target word")
+	if pd.wordi == len(pd.Words) {
+		// TODO: end of race
+		return
+	}
+
+	pd.wordi++
 }
 
 func (pd *ParagraphData) currentWord() string {
-	return pd.Words[pd.wordi]
+	w := pd.Words[pd.wordi]
+	w = strings.TrimSuffix(w, "\n")
+	return w
 }
 
 // GetCurrentIdx tells index of target word

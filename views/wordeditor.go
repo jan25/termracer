@@ -2,7 +2,9 @@ package views
 
 import (
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/viewdata"
+	"strings"
 )
 
 // WordView is a editor widget
@@ -60,14 +62,16 @@ func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor) {
 	v.SelBgColor = gocui.ColorRed
 	v.SelFgColor = gocui.ColorCyan
 
-	if len(w.Data.CurrentTyped) == 0 {
-		w.clearEditor(v) // Reset to origin for new target word
+	if w.Data.ShouldClearEditor {
+		w.clearEditor(v)                 // Reset to origin for new target word
+		w.Data.ShouldClearEditor = false // Reset only once, this removes deadlock
 	} else {
 		w.highlight(v)
 	}
 }
 
 func (w *WordView) clearEditor(v *gocui.View) {
+	config.Logger.Info("Clearing Editor")
 	v.Clear()
 	v.SetCursor(v.Origin())
 	v.Editable = false
@@ -126,5 +130,6 @@ func (w *WordView) highlight(v *gocui.View) {
 // gets current word in the editor
 func (w *WordView) getCurrentTyped(v *gocui.View) string {
 	line := v.Buffer()
+	line = strings.TrimSuffix(line, "\n") // remove new line thingy at end of buffer
 	return line
 }

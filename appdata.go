@@ -27,7 +27,6 @@ var (
 // AppData wraps all view's data structs in the app
 type AppData struct {
 	paragraph *viewdata.ParagraphData
-	editor    *viewdata.WordEditorData
 	history   *viewdata.Stats
 	stats     *viewdata.LiveStats
 	controls  *viewdata.ControlsData
@@ -41,7 +40,7 @@ func InitializeAppData(g *gocui.Gui) (*AppData, error) {
 	ad.paragraph = para.Data
 
 	word := views.NewWordView(wordName, topX, topY+paraH+pad, wordW, wordH)
-	ad.editor = word.Data
+	word.Data = para.Data // Data shared between editor and paragraph views
 
 	stats, err := views.NewStatsView(statsName, topX+paraW+pad, topY, statsW, statsH)
 	if err != nil {
@@ -61,20 +60,14 @@ func InitializeAppData(g *gocui.Gui) (*AppData, error) {
 // OnRaceStart is called at start of a new race
 func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
 	updateUICh := make(chan bool)
-	paraToWord := make(chan viewdata.WordValidateMsg)
-	wordToPara := make(chan viewdata.WordValidateMsg)
-	wordToStats := make(chan viewdata.StatMsg)
-	ad.paragraph.SetChannels(paraToWord, wordToPara, updateUICh)
-	ad.editor.SetChannels(wordToPara, paraToWord, wordToStats, updateUICh)
-	ad.stats.SetChannels(wordToStats, updateUICh)
+	paraToStats := make(chan viewdata.StatMsg)
+	ad.stats.SetChannels(paraToStats, updateUICh)
+	ad.paragraph.SetChannels(paraToStats, updateUICh)
 
 	ad.stats.IsActive = !ad.stats.IsActive
 	ad.history.IsActive = !ad.history.IsActive
 
-	if err := ad.paragraph.StartRace(); err != nil {
-		return err
-	}
-	if err := ad.editor.StartRace(g, wordName); err != nil {
+	if err := ad.paragraph.StartRace(g, wordName); err != nil {
 		return err
 	}
 	if err := ad.stats.StartRace(); err != nil {
@@ -90,9 +83,6 @@ func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
 // - when user stops the race
 func (ad *AppData) OnRaceFinish(g *gocui.Gui) error {
 	if err := ad.paragraph.FinishRace(); err != nil {
-		return err
-	}
-	if err := ad.editor.FinishRace(g); err != nil {
 		return err
 	}
 	if err := ad.stats.FinishRace(); err != nil {

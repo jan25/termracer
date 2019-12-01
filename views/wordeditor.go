@@ -22,7 +22,7 @@ type WordView struct {
 	done chan struct{}
 
 	// data about contents of editor view
-	Data *viewdata.WordEditorData
+	Data *viewdata.ParagraphData
 }
 
 // NewWordView creates new instance of WordView
@@ -33,7 +33,6 @@ func NewWordView(name string, x, y int, w, h int) *WordView {
 		y:    y,
 		w:    w,
 		h:    h,
-		Data: viewdata.NewWordEditorData(),
 	}
 	wv.e = wv.newWordEditor() // This looks wierd, doesn't it?
 	return wv
@@ -64,7 +63,7 @@ func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor) {
 
 	if w.Data.ShouldClearEditor {
 		w.clearEditor(v)                 // Reset to origin for new target word
-		w.Data.ShouldClearEditor = false // Reset only once, this removes deadlock
+		w.Data.ShouldClearEditor = false // Reset only once, this removes the deadlock on editor
 	} else {
 		w.highlight(v)
 	}
@@ -119,12 +118,12 @@ func (w *WordView) handleSpace(v *gocui.View) {
 // sends message to paragraph for
 // typed word validations
 func (w *WordView) onChange(v *gocui.View) {
-	w.Data.OnChangeMsg(w.getCurrentTyped(v))
+	w.Data.OnEditorChange(w.getCurrentTyped(v))
 }
 
 // highlight for incorrectly typed word
 func (w *WordView) highlight(v *gocui.View) {
-	v.Highlight = w.Data.IsMistyped
+	v.Highlight = w.Data.Mistyped
 }
 
 // gets current word in the editor

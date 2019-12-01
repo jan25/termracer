@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/db"
 	"go.uber.org/zap"
@@ -19,6 +20,9 @@ type ParagraphData struct {
 	// whether target word is mistyped
 	Mistyped bool
 
+	// if set the wordeditor will be cleared
+	ShouldClearEditor bool
+
 	// line count in target paragraph
 	lineCount int
 
@@ -32,12 +36,11 @@ type ParagraphData struct {
 	// Y position of View origin
 	Oy int
 
-	// Channels to communicate with wordeditor
-	wsender   chan WordValidateMsg
-	wreceiver chan WordValidateMsg
-
 	// channel to update UI
 	updateCh chan bool
+
+	// channel for sending LiveStats data
+	statsCh chan StatMsg
 
 	done chan struct{}
 }
@@ -56,18 +59,13 @@ func NewParagraphData() *ParagraphData {
 }
 
 // StartRace is called when a race starts
-func (pd *ParagraphData) StartRace() error {
-	if pd.wsender == nil || pd.wreceiver == nil {
-		return errors.New("wsender or wreceiver is nil")
-	}
-
+func (pd *ParagraphData) StartRace(g *gocui.Gui, viewName string) error {
 	if err := pd.setTargetParagraph(); err != nil {
 		return err
 	}
 
 	pd.newDoneCh()
-
-	go pd.talkWithWordEditor()
+	pd.activateEditor(g, viewName)
 
 	return nil
 }
@@ -93,6 +91,12 @@ func (pd *ParagraphData) setTargetParagraph() error {
 	return nil
 }
 
+// SetChannels sets channels for UI, stats updates
+func (pd *ParagraphData) SetChannels(statsCh chan StatMsg, updateCh chan bool) {
+	pd.updateCh = updateCh
+	pd.statsCh = statsCh
+}
+
 // FinishRace is called to finish a race
 func (pd *ParagraphData) FinishRace() error {
 	select {
@@ -105,38 +109,13 @@ func (pd *ParagraphData) FinishRace() error {
 	return nil
 }
 
-// SetChannels sets channels for communication
-func (pd *ParagraphData) SetChannels(wsender, wreceiver chan WordValidateMsg, updateCh chan bool) {
-	pd.wsender = wsender
-	pd.wreceiver = wreceiver
-	pd.updateCh = updateCh
-}
-
-func (pd *ParagraphData) talkWithWordEditor() {
-	defer close(pd.wreceiver)
-
-	for {
-		select {
-		case <-pd.DoneCh():
-			return
-		default:
-			msg := <-pd.wreceiver
-			pd.validateTypedWord(msg)
-		}
-	}
-}
-
-func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
-	s := strings.TrimSuffix(msg.TypedWord, " ") // trim single space in suffix
+// OnEditorChange is called on every change event to woreditor
+func (pd *ParagraphData) OnEditorChange(w string) {
+	s := strings.TrimSuffix(w, " ") // trim single space in suffix
 	cw := pd.currentWord()
 
 	correct := strings.HasPrefix(cw, s)
-	newWord := (s == cw) && strings.HasSuffix(msg.TypedWord, " ")
-
-	pd.wsender <- WordValidateMsg{
-		Correct:    correct,
-		IsNextWord: newWord,
-	}
+	newWord := (s == cw) && strings.HasSuffix(w, " ")
 
 	pd.Mistyped = !correct
 	config.Logger.Info("setting pd.Mistyped", zap.Bool("mistyped", pd.Mistyped), zap.String("s", s), zap.String("cw", cw))
@@ -144,6 +123,8 @@ func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
 	if newWord {
 		pd.tryAdvanceWord()
 	}
+
+	pd.updateCh <- true
 }
 
 func (pd *ParagraphData) tryAdvanceWord() {
@@ -154,7 +135,8 @@ func (pd *ParagraphData) tryAdvanceWord() {
 	}
 
 	pd.wordi++
-	pd.updateCh <- true
+	pd.ShouldClearEditor = true
+	// pd.updateCh <- true
 }
 
 func (pd *ParagraphData) currentWord() string {
@@ -199,4 +181,13 @@ func (pd *ParagraphData) makeScroll() {
 	if currLine == atLine && linesLeft >= whenLinesLeft {
 		pd.Oy++
 	}
+}
+
+func (pd *ParagraphData) activateEditor(g *gocui.Gui, viewName string) {
+	g.SetCurrentView(viewName)
+	g.Cursor = true
+}
+
+func (pd *ParagraphData) deactivateEditor(g *gocui.Gui) {
+	g.Cursor = false
 }

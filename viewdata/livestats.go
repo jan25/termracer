@@ -15,7 +15,7 @@ type LiveStats struct {
 	incorrect int
 
 	// stream of messages from word editor
-	wreceiver chan StatMsg
+	preceiver chan StatMsg
 
 	// channel to update UI
 	updateCh chan bool
@@ -46,7 +46,7 @@ func NewLiveStats() *LiveStats {
 
 // StartRace starts a new race
 func (ls *LiveStats) StartRace() error {
-	if ls.wreceiver == nil {
+	if ls.preceiver == nil {
 		return errors.New("stream channel is nil")
 	}
 
@@ -74,20 +74,20 @@ func (ls *LiveStats) TryStartTicker(g *gocui.Gui) {
 }
 
 // SetChannels sets channels for communication
-func (ls *LiveStats) SetChannels(wreceiver chan StatMsg, updateCh chan bool) {
-	ls.wreceiver = wreceiver
+func (ls *LiveStats) SetChannels(preceiver chan StatMsg, updateCh chan bool) {
+	ls.preceiver = preceiver
 	ls.updateCh = updateCh
 }
 
 func (ls *LiveStats) listenToWordEditor() {
-	defer close(ls.wreceiver)
+	defer close(ls.preceiver)
 
 	for {
 		select {
 		case <-ls.getDoneCh():
 			return
 		default:
-			msg := <-ls.wreceiver
+			msg := <-ls.preceiver
 			if msg.IsMistyped {
 				ls.incorrect++
 			} else {

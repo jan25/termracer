@@ -53,7 +53,7 @@ func (w *WordEditorData) StartRace(g *gocui.Gui, viewName string) error {
 	}
 
 	w.newDoneCh()
-	w.activateEditor(g, viewName)
+	// w.activateEditor(g, viewName)
 	go w.talkWithParagraph()
 	return nil
 }
@@ -67,7 +67,7 @@ func (w *WordEditorData) FinishRace(g *gocui.Gui) error {
 	case <-w.DoneCh():
 		return errors.New("Race already stopped")
 	default:
-		w.deactivateEditor(g)
+		// w.deactivateEditor(g)
 		close(w.DoneCh())
 	}
 	return nil
@@ -127,13 +127,4 @@ func (w *WordEditorData) DoneCh() chan struct{} {
 		w.newDoneCh()
 	}
 	return w.done
-}
-
-func (w *WordEditorData) activateEditor(g *gocui.Gui, viewName string) {
-	g.SetCurrentView(viewName)
-	g.Cursor = true
-}
-
-func (w *WordEditorData) deactivateEditor(g *gocui.Gui) {
-	g.Cursor = false
 }

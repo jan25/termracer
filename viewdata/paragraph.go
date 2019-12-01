@@ -7,7 +7,6 @@ import (
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/db"
-	"go.uber.org/zap"
 )
 
 // ParagraphData keeps track of state, data
@@ -101,7 +100,7 @@ func (pd *ParagraphData) SetChannels(statsCh chan StatMsg, updateCh chan bool) {
 func (pd *ParagraphData) FinishRace() error {
 	select {
 	case <-pd.DoneCh():
-		return errors.New("race already stopped")
+		return errors.New("Race already stopped")
 	default:
 		close(pd.DoneCh())
 	}
@@ -111,19 +110,19 @@ func (pd *ParagraphData) FinishRace() error {
 
 // OnEditorChange is called on every change event to woreditor
 func (pd *ParagraphData) OnEditorChange(w string) {
-	s := strings.TrimSuffix(w, " ") // trim single space in suffix
+	endsWithSpace := strings.HasSuffix(w, " ")
+	if endsWithSpace && len(w) > 1 {
+		w = strings.TrimSuffix(w, " ")
+	}
+
 	cw := pd.currentWord()
-
-	correct := strings.HasPrefix(cw, s)
-	newWord := (s == cw) && strings.HasSuffix(w, " ")
-
+	correct := strings.HasPrefix(cw, w)
 	pd.Mistyped = !correct
-	config.Logger.Info("setting pd.Mistyped", zap.Bool("mistyped", pd.Mistyped), zap.String("s", s), zap.String("cw", cw))
-
-	if newWord {
+	if endsWithSpace && w == cw {
 		pd.tryAdvanceWord()
 	}
 
+	// Update UI and Stats
 	pd.updateCh <- true
 	pd.statsCh <- StatMsg{
 		IsMistyped: pd.Mistyped,
@@ -139,12 +138,11 @@ func (pd *ParagraphData) tryAdvanceWord() {
 
 	pd.wordi++
 	pd.ShouldClearEditor = true
-	// pd.updateCh <- true
 }
 
 func (pd *ParagraphData) currentWord() string {
 	w := pd.Words[pd.wordi]
-	w = strings.TrimSuffix(w, "\n")
+	w = strings.TrimSuffix(w, "\n") // FIXME: do we need \n at end of the a word?
 	return w
 }
 

@@ -88,7 +88,7 @@ func (w *WordView) wordEditorFunc(v *gocui.View, key gocui.Key, ch rune, mod goc
 		w.handleDelete(v, true)
 	case key == gocui.KeyDelete:
 		w.handleDelete(v, false) // FIXME figure why did we write this?
-	case len(currentTyped) > viewdata.MaxWordLen:
+	case len(currentTyped) > config.MaxWordLen:
 		// do not add anymore runes
 		// can only delete from here
 	case ch != 0 && mod == 0:

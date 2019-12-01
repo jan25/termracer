@@ -17,6 +17,9 @@ const (
 
 	// DebugLogs is path for logs for debugging purposes
 	DebugLogs = "/app.log"
+
+	// MaxWordLen is maximum length of word allowed to type
+	MaxWordLen = 25
 )
 
 // GetSamplesUseDir returns path to samples/use

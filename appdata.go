@@ -60,12 +60,13 @@ func InitializeAppData(g *gocui.Gui) (*AppData, error) {
 
 // OnRaceStart is called at start of a new race
 func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
+	updateUICh := make(chan bool)
 	paraToWord := make(chan viewdata.WordValidateMsg)
 	wordToPara := make(chan viewdata.WordValidateMsg)
 	wordToStats := make(chan viewdata.StatMsg)
-	ad.paragraph.SetChannels(paraToWord, wordToPara)
-	ad.editor.SetChannels(wordToPara, paraToWord, wordToStats)
-	ad.stats.SetChannels(wordToStats)
+	ad.paragraph.SetChannels(paraToWord, wordToPara, updateUICh)
+	ad.editor.SetChannels(wordToPara, paraToWord, wordToStats, updateUICh)
+	ad.stats.SetChannels(wordToStats, updateUICh)
 
 	ad.stats.IsActive = !ad.stats.IsActive
 	ad.history.IsActive = !ad.history.IsActive

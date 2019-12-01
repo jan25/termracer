@@ -25,6 +25,9 @@ type WordEditorData struct {
 	// Channel to send messages to racestats
 	rsender chan StatMsg
 
+	// channel to update UI
+	updateCh chan bool
+
 	done chan struct{}
 }
 
@@ -71,10 +74,11 @@ func (w *WordEditorData) FinishRace(g *gocui.Gui) error {
 }
 
 // SetChannels sets channels for communication with other components during a race
-func (w *WordEditorData) SetChannels(psender, preceiver chan WordValidateMsg, rsender chan StatMsg) {
+func (w *WordEditorData) SetChannels(psender, preceiver chan WordValidateMsg, rsender chan StatMsg, updateCh chan bool) {
 	w.psender = psender
 	w.preceiver = preceiver
 	w.rsender = rsender
+	w.updateCh = updateCh
 }
 
 func (w *WordEditorData) talkWithParagraph() {
@@ -95,6 +99,7 @@ func (w *WordEditorData) talkWithParagraph() {
 func (w *WordEditorData) understandMsg(msg WordValidateMsg) {
 	w.IsMistyped = !msg.Correct
 	w.ShouldClearEditor = msg.IsNextWord
+	w.updateCh <- true
 }
 
 func (w *WordEditorData) sendStatsUpdate(msg WordValidateMsg) {

@@ -36,6 +36,9 @@ type ParagraphData struct {
 	wsender   chan WordValidateMsg
 	wreceiver chan WordValidateMsg
 
+	// channel to update UI
+	updateCh chan bool
+
 	done chan struct{}
 }
 
@@ -103,9 +106,10 @@ func (pd *ParagraphData) FinishRace() error {
 }
 
 // SetChannels sets channels for communication
-func (pd *ParagraphData) SetChannels(wsender, wreceiver chan WordValidateMsg) {
+func (pd *ParagraphData) SetChannels(wsender, wreceiver chan WordValidateMsg, updateCh chan bool) {
 	pd.wsender = wsender
 	pd.wreceiver = wreceiver
+	pd.updateCh = updateCh
 }
 
 func (pd *ParagraphData) talkWithWordEditor() {
@@ -150,6 +154,7 @@ func (pd *ParagraphData) tryAdvanceWord() {
 	}
 
 	pd.wordi++
+	pd.updateCh <- true
 }
 
 func (pd *ParagraphData) currentWord() string {

@@ -17,6 +17,9 @@ type LiveStats struct {
 	// stream of messages from word editor
 	wreceiver chan StatMsg
 
+	// channel to update UI
+	updateCh chan bool
+
 	// done channel
 	done chan struct{}
 
@@ -67,12 +70,13 @@ func (ls *LiveStats) TryStartTicker(g *gocui.Gui) {
 		return // do nothing
 	}
 
-	go utils.Tick(ls.timer, g)
+	go utils.Tick(ls.timer, ls.updateCh, g)
 }
 
 // SetChannels sets channels for communication
-func (ls *LiveStats) SetChannels(wreceiver chan StatMsg) {
+func (ls *LiveStats) SetChannels(wreceiver chan StatMsg, updateCh chan bool) {
 	ls.wreceiver = wreceiver
+	ls.updateCh = updateCh
 }
 
 func (ls *LiveStats) listenToWordEditor() {

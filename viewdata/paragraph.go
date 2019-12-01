@@ -125,6 +125,9 @@ func (pd *ParagraphData) OnEditorChange(w string) {
 	}
 
 	pd.updateCh <- true
+	pd.statsCh <- StatMsg{
+		IsMistyped: pd.Mistyped,
+	}
 }
 
 func (pd *ParagraphData) tryAdvanceWord() {

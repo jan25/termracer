@@ -105,3 +105,9 @@ func (ad *AppData) HistoryScrollUp(g *gocui.Gui, v *gocui.View) error {
 func (ad *AppData) HistoryScrollDown(g *gocui.Gui, v *gocui.View) error {
 	return ad.history.ScrollDown(g, v)
 }
+
+// DebugAdvance is used to debug manually
+func (ad *AppData) DebugAdvance(g *gocui.Gui, v *gocui.View) error {
+	ad.paragraph.DebugAdvance()
+	return nil
+}

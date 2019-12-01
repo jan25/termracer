@@ -46,7 +46,7 @@ func main() {
 	DefaultBindings(gui)
 
 	if *debug {
-		debugBindings(gui)
+		debugBindings(gui, app)
 	}
 
 	config.Logger.Info("Starting main loop..")

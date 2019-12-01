@@ -7,6 +7,7 @@ import (
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/db"
+	"go.uber.org/zap"
 )
 
 // ParagraphData keeps track of state, data
@@ -47,13 +48,9 @@ type ParagraphData struct {
 // NewParagraphData creates instance of ParagraphData
 func NewParagraphData() *ParagraphData {
 	return &ParagraphData{
-		Words:     nil,
-		wordi:     0,
-		Mistyped:  false,
-		lineCount: 0, // FIXME
-		Line:      0,
-		Word:      0,
-		Oy:        0,
+		Words:    nil,
+		wordi:    0,
+		Mistyped: false,
 	}
 }
 
@@ -123,6 +120,7 @@ func (pd *ParagraphData) OnEditorChange(w string) {
 	}
 
 	// Update UI and Stats
+	pd.updateScrollAttr()
 	pd.updateCh <- true
 	pd.statsCh <- StatMsg{
 		IsMistyped: pd.Mistyped,
@@ -130,7 +128,6 @@ func (pd *ParagraphData) OnEditorChange(w string) {
 }
 
 func (pd *ParagraphData) tryAdvanceWord() {
-	config.Logger.Info("Advancing target word")
 	if pd.wordi == len(pd.Words) {
 		// TODO: end of race
 		return
@@ -140,9 +137,26 @@ func (pd *ParagraphData) tryAdvanceWord() {
 	pd.ShouldClearEditor = true
 }
 
+// DebugAdvance advances by a word to debug stuff
+func (pd *ParagraphData) DebugAdvance() {
+	pd.OnEditorChange(pd.currentWord() + " ")
+}
+
+// Called after Advancing by a word
+func (pd *ParagraphData) updateScrollAttr() {
+	prevWord := pd.Words[pd.wordi-1]
+	if strings.HasSuffix(prevWord, "\n") {
+		pd.Word = 0
+		pd.Line++
+	} else {
+		pd.Word++
+	}
+	pd.makeScroll()
+}
+
 func (pd *ParagraphData) currentWord() string {
 	w := pd.Words[pd.wordi]
-	w = strings.TrimSuffix(w, "\n") // FIXME: do we need \n at end of the a word?
+	w = strings.TrimSuffix(w, "\n") // FIXME: do we need \n at end of a word? maybe this is to print on a new line
 	return w
 }
 
@@ -171,6 +185,10 @@ func (pd *ParagraphData) DoneCh() chan struct{} {
 
 // makeScroll auto scrolls the view during the race
 func (pd *ParagraphData) makeScroll() {
+	prevWord := pd.Words[pd.wordi-1]
+	config.Logger.Info("scroll attr", zap.Int("Word", pd.Word),
+		zap.Int("Line", pd.Line), zap.Int("lineCount", pd.lineCount), zap.Int("Oy", pd.Oy), zap.String("prevWord", prevWord),
+		zap.Bool("Line++", strings.HasSuffix(prevWord, "\n")))
 	whenLinesLeft := 2
 	atWord, atLine := 2, (pd.H-1)-whenLinesLeft
 

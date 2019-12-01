@@ -69,14 +69,8 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-func debugBindings(g *gocui.Gui) {
-	// TODO
-	// if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, advanceWord); err != nil {
-	// 	log.Panicln(err) // FIXME This will crash the app at end of paragraph
-	// }
+func debugBindings(g *gocui.Gui, ad *AppData) {
+	if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, ad.DebugAdvance); err != nil {
+		log.Panicln(err) // FIXME This might crash the app at end of paragraph
+	}
 }
-
-// FIXME: For debugging in the UI
-// func advanceWord(g *gocui.Gui, v *gocui.View) error {
-// 	return paragraph.Advance()
-// }

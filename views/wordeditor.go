@@ -70,7 +70,6 @@ func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor) {
 }
 
 func (w *WordView) clearEditor(v *gocui.View) {
-	config.Logger.Info("Clearing Editor")
 	v.Clear()
 	v.SetCursor(v.Origin())
 	v.Editable = false

@@ -33,7 +33,7 @@ func main() {
 	}
 	defer gui.Close()
 
-	app, err = InitializeAppData(gui)
+	app, err = initializeAppData(gui)
 	if err != nil {
 		log.Panicln(err)
 	}

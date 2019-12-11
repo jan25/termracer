@@ -37,7 +37,7 @@ func GetSamplesJSON(fname string) ([]Sample, error) {
 	return samples, nil
 }
 
-// DownloadSamplesToLocalFS downloads stores samples.json file locally
+// DownloadSamplesToLocalFS downloads and stores samples.json file locally
 func DownloadSamplesToLocalFS(fname string) error {
 	url := "https://github.com/jan25/termracer/raw/master/data/samples.gz"
 	bytes, err := DownloadGzipFile(url)

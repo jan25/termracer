@@ -56,22 +56,14 @@ func NewParagraphData() *ParagraphData {
 }
 
 // StartRace is called when a race starts
-func (pd *ParagraphData) StartRace(g *gocui.Gui, viewName string) error {
-	if err := pd.setTargetParagraph(); err != nil {
-		return err
-	}
-
+func (pd *ParagraphData) StartRace(g *gocui.Gui, viewName string) {
+	pd.setTargetParagraph()
 	pd.newDoneCh()
 	pd.RaceInProgress = true
-
-	return nil
 }
 
-func (pd *ParagraphData) setTargetParagraph() error {
-	para, err := db.ChooseParagraph()
-	if err != nil {
-		return err
-	}
+func (pd *ParagraphData) setTargetParagraph() {
+	para := db.ChooseParagraph()
 
 	pd.Words = strings.Fields(para)
 	for i, w := range pd.Words {
@@ -84,8 +76,6 @@ func (pd *ParagraphData) setTargetParagraph() error {
 	pd.Oy = 0
 	pd.Line = 0
 	pd.Word = 0
-
-	return nil
 }
 
 // SetChannels sets channels for UI, stats updates

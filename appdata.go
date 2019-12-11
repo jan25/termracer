@@ -39,15 +39,15 @@ type AppData struct {
 	finishCh   chan viewdata.OneStat
 }
 
-// InitializeAppData creates views and initialises AppData
-func InitializeAppData(g *gocui.Gui) (*AppData, error) {
+// initializeAppData creates views and initialises AppData
+func initializeAppData(g *gocui.Gui) (*AppData, error) {
 	ad := &AppData{}
 
 	para := views.NewParagraphView(paraName, topX, topY, paraW, paraH)
 	ad.paragraph = para.Data
 
 	word := views.NewWordView(wordName, topX, topY+paraH+pad, wordW, wordH)
-	word.Data = para.Data // Data shared between editor and paragraph views
+	word.Data = para.Data // This Data shared between editor and paragraph views
 
 	stats, err := views.NewStatsView(statsName, topX+paraW+pad, topY, statsW, statsH)
 	if err != nil {
@@ -75,9 +75,7 @@ func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
 	ad.stats.IsActive = !ad.stats.IsActive
 	ad.history.IsActive = !ad.history.IsActive
 
-	if err := ad.paragraph.StartRace(g, wordName); err != nil {
-		return err
-	}
+	ad.paragraph.StartRace(g, wordName)
 	if err := ad.stats.StartRace(); err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"log"
 	"math/rand"
 	"os"
 
@@ -9,31 +10,24 @@ import (
 )
 
 // ChooseParagraph calls the server to fetch a paragraph
-func ChooseParagraph() (string, error) {
+func ChooseParagraph() string {
 	samplesFname, err := config.GetSamplesFilePath()
 	if err != nil {
-		return fallbackToDefaultParagraph(err)
+		log.Fatal(err)
 	}
 	samples, err := GetSamplesJSON(samplesFname)
 	if err != nil {
-		return fallbackToDefaultParagraph(err)
+		log.Fatal(err)
 	}
 
+	// FIXME rand.Seed(time.Time.Now().Unix())
 	ri := rand.Int() % len(samples)
 	p := samples[ri]
-	return p.Content, nil
+	return p.Content
 }
 
-// TODO clean this after we're sure fallback isn't necessary
-func fallbackToDefaultParagraph(err error) (string, error) {
-	// FIXME: logs as below from legacy
-	// Logger.Info("Error reading paragraph from local FS " + err.Error())
-	// Logger.Info("Falling back to default paragraph")
-	return firstParagraph, nil
-}
-
-// GenerateLocalParagraphs checks if samples/use has > 0 paragraphs
-// available. If not tries to generate them
+// GenerateLocalParagraphs checks if samples/use has paragraphs to race with
+// available. If not available this func tries to generate them
 func GenerateLocalParagraphs() error {
 	// TODO Add Loading... thingy before opening UI
 	samplesFname, err := config.GetSamplesFilePath()

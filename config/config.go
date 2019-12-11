@@ -18,7 +18,7 @@ const (
 	// DebugLogs is path for logs for debugging purposes
 	DebugLogs = "/app.log"
 
-	// MaxWordLen is maximum length of word allowed to type
+	// MaxWordLen is assumed/allowed maximum length of typed word
 	MaxWordLen = 25
 )
 

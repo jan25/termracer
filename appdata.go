@@ -26,6 +26,8 @@ var (
 	pad        = 1
 )
 
+var app *AppData
+
 // AppData wraps all view's data structs in the app
 type AppData struct {
 	paragraph *viewdata.ParagraphData

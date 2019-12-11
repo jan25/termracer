@@ -9,8 +9,6 @@ import (
 	"github.com/jan25/termracer/db"
 )
 
-var app *AppData
-
 func main() {
 	// Flags
 	debug := flag.Bool("debug", false, "flag for debug mode")
@@ -41,7 +39,7 @@ func main() {
 	}
 
 	// Default key bindings on startup
-	DefaultBindings(gui)
+	defaultBindings(gui)
 	if *debug {
 		debugBindings(gui, app)
 	}

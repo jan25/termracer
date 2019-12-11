@@ -10,15 +10,15 @@ var Logger *zap.Logger
 
 // InitLogger initalizes a logger
 func InitLogger(debug bool) (*zap.Logger, error) {
-	fpath, err := GetLogsFilePath()
-	if err != nil {
-		return nil, err
-	}
-
 	if !debug {
 		// no-op logger
 		Logger = zap.New(nil)
 		return Logger, nil
+	}
+
+	fpath, err := GetLogsFilePath()
+	if err != nil {
+		return nil, err
 	}
 
 	cfg := zap.NewProductionConfig()

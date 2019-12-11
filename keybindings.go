@@ -7,8 +7,8 @@ import (
 	"github.com/jan25/termracer/config"
 )
 
-// DefaultBindings registers key bindings for default controls
-func DefaultBindings(g *gocui.Gui) {
+// defaultBindings registers key bindings for default controls
+func defaultBindings(g *gocui.Gui) {
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
 	}

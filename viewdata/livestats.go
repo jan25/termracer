@@ -2,6 +2,7 @@ package viewdata
 
 import (
 	"errors"
+	"time"
 
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/pkg/utils"
@@ -20,6 +21,10 @@ type LiveStats struct {
 	// channel to update UI
 	updateCh chan bool
 
+	// used to end a race
+	// when we ran out of words to type
+	finishCh chan OneStat
+
 	// done channel
 	done chan struct{}
 
@@ -32,6 +37,7 @@ type LiveStats struct {
 // with wordeditor
 type StatMsg struct {
 	IsMistyped bool
+	FinishRace bool
 }
 
 // NewLiveStats creates new instance of LiveStats
@@ -74,9 +80,10 @@ func (ls *LiveStats) TryStartTicker(g *gocui.Gui) {
 }
 
 // SetChannels sets channels for communication
-func (ls *LiveStats) SetChannels(preceiver chan StatMsg, updateCh chan bool) {
+func (ls *LiveStats) SetChannels(preceiver chan StatMsg, updateCh chan bool, finishCh chan OneStat) {
 	ls.preceiver = preceiver
 	ls.updateCh = updateCh
+	ls.finishCh = finishCh
 }
 
 func (ls *LiveStats) listenToWordEditor() {
@@ -88,7 +95,15 @@ func (ls *LiveStats) listenToWordEditor() {
 			return
 		default:
 			msg := <-ls.preceiver
-			if msg.IsMistyped {
+			if msg.FinishRace {
+				wpm, _ := ls.Wpm() // FIXME: Should we care about error handling?
+				acc, _ := ls.Accuracy()
+				ls.finishCh <- OneStat{
+					Wpm:      wpm,
+					Accuracy: acc,
+					When:     time.Now(),
+				}
+			} else if msg.IsMistyped {
 				ls.incorrect++
 			} else {
 				ls.correct++

@@ -9,9 +9,7 @@ import (
 	"github.com/jan25/termracer/db"
 )
 
-var (
-	app *AppData
-)
+var app *AppData
 
 func main() {
 	// Flags
@@ -44,7 +42,6 @@ func main() {
 
 	// Default key bindings on startup
 	DefaultBindings(gui)
-
 	if *debug {
 		debugBindings(gui, app)
 	}

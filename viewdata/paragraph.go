@@ -5,9 +5,7 @@ import (
 	"strings"
 
 	"github.com/jan25/gocui"
-	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/db"
-	"go.uber.org/zap"
 )
 
 // ParagraphData keeps track of state, data
@@ -20,7 +18,9 @@ type ParagraphData struct {
 	// whether target word is mistyped
 	Mistyped bool
 
-	// if set the wordeditor will be cleared
+	// true if a race is in progress
+	RaceInProgress bool
+	// if set the wordeditor will be cleared for next target word
 	ShouldClearEditor bool
 
 	// line count in target paragraph
@@ -48,9 +48,10 @@ type ParagraphData struct {
 // NewParagraphData creates instance of ParagraphData
 func NewParagraphData() *ParagraphData {
 	return &ParagraphData{
-		Words:    nil,
-		wordi:    0,
-		Mistyped: false,
+		Words:          nil,
+		wordi:          0,
+		Mistyped:       false,
+		RaceInProgress: false,
 	}
 }
 
@@ -61,7 +62,7 @@ func (pd *ParagraphData) StartRace(g *gocui.Gui, viewName string) error {
 	}
 
 	pd.newDoneCh()
-	pd.activateEditor(g, viewName)
+	pd.RaceInProgress = true
 
 	return nil
 }
@@ -112,11 +113,18 @@ func (pd *ParagraphData) OnEditorChange(w string) {
 		w = strings.TrimSuffix(w, " ")
 	}
 
+	lastWord := false
+	if pd.wordi == len(pd.Words)-1 {
+		lastWord = true
+	}
+
 	cw := pd.currentWord()
 	correct := strings.HasPrefix(cw, w)
 	pd.Mistyped = !correct
-	if endsWithSpace && w == cw {
-		pd.tryAdvanceWord()
+	if (lastWord || endsWithSpace) && w == cw {
+		if pd.tryAdvanceWord() == false {
+			return // end of race
+		}
 	}
 
 	// Update UI and Stats
@@ -124,17 +132,22 @@ func (pd *ParagraphData) OnEditorChange(w string) {
 	pd.updateCh <- true
 	pd.statsCh <- StatMsg{
 		IsMistyped: pd.Mistyped,
+		FinishRace: false,
 	}
 }
 
-func (pd *ParagraphData) tryAdvanceWord() {
-	if pd.wordi == len(pd.Words) {
-		// TODO: end of race
-		return
+func (pd *ParagraphData) tryAdvanceWord() bool {
+	if pd.wordi+1 == len(pd.Words) {
+		// End of race, we ran out of words to type
+		pd.statsCh <- StatMsg{
+			FinishRace: true,
+		}
+		return false
 	}
 
 	pd.wordi++
 	pd.ShouldClearEditor = true
+	return true
 }
 
 // DebugAdvance advances by a word to debug stuff
@@ -144,6 +157,9 @@ func (pd *ParagraphData) DebugAdvance() {
 
 // Called after Advancing by a word
 func (pd *ParagraphData) updateScrollAttr() {
+	if pd.wordi <= 0 {
+		return
+	}
 	prevWord := pd.Words[pd.wordi-1]
 	if strings.HasSuffix(prevWord, "\n") {
 		pd.Word = 0
@@ -185,10 +201,6 @@ func (pd *ParagraphData) DoneCh() chan struct{} {
 
 // makeScroll auto scrolls the view during the race
 func (pd *ParagraphData) makeScroll() {
-	prevWord := pd.Words[pd.wordi-1]
-	config.Logger.Info("scroll attr", zap.Int("Word", pd.Word),
-		zap.Int("Line", pd.Line), zap.Int("lineCount", pd.lineCount), zap.Int("Oy", pd.Oy), zap.String("prevWord", prevWord),
-		zap.Bool("Line++", strings.HasSuffix(prevWord, "\n")))
 	whenLinesLeft := 2
 	atWord, atLine := 2, (pd.H-1)-whenLinesLeft
 
@@ -200,13 +212,4 @@ func (pd *ParagraphData) makeScroll() {
 	if currLine == atLine && linesLeft >= whenLinesLeft {
 		pd.Oy++
 	}
-}
-
-func (pd *ParagraphData) activateEditor(g *gocui.Gui, viewName string) {
-	g.SetCurrentView(viewName)
-	g.Cursor = true
-}
-
-func (pd *ParagraphData) deactivateEditor(g *gocui.Gui) {
-	g.Cursor = false
 }

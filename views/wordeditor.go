@@ -49,13 +49,15 @@ func (w *WordView) Layout(g *gocui.Gui) error {
 	case <-w.Data.DoneCh():
 		// no race in progress
 		w.clearEditor(v)
+		w.deactivateEditor(g)
 	default:
-		w.initEditor(v, &w.e)
+		w.initEditor(v, &w.e, g)
 	}
 	return nil
 }
 
-func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor) {
+func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor, g *gocui.Gui) {
+	w.activateEditor(g, w.name)
 	v.Editor = *e
 	v.Editable = true
 	v.SelBgColor = gocui.ColorRed
@@ -130,4 +132,13 @@ func (w *WordView) getCurrentTyped(v *gocui.View) string {
 	line := v.Buffer()
 	line = strings.TrimSuffix(line, "\n") // remove new line thingy at end of buffer
 	return line
+}
+
+func (w *WordView) activateEditor(g *gocui.Gui, viewName string) {
+	g.SetCurrentView(viewName)
+	g.Cursor = true
+}
+
+func (w *WordView) deactivateEditor(g *gocui.Gui) {
+	g.Cursor = false
 }

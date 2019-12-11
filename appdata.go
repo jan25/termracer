@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/viewdata"
 	"github.com/jan25/termracer/views"
+	"log"
 )
 
 const (
@@ -30,6 +32,9 @@ type AppData struct {
 	history   *viewdata.Stats
 	stats     *viewdata.LiveStats
 	controls  *viewdata.ControlsData
+
+	updateUICh chan bool
+	finishCh   chan viewdata.OneStat
 }
 
 // InitializeAppData creates views and initialises AppData
@@ -59,10 +64,11 @@ func InitializeAppData(g *gocui.Gui) (*AppData, error) {
 
 // OnRaceStart is called at start of a new race
 func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
-	updateUICh := make(chan bool)
-	paraToStats := make(chan viewdata.StatMsg)
-	ad.stats.SetChannels(paraToStats, updateUICh)
-	ad.paragraph.SetChannels(paraToStats, updateUICh)
+	ad.updateUICh = make(chan bool)            // close()ed in ticker.go
+	paraToStats := make(chan viewdata.StatMsg) // close()ed in livestats.go
+	ad.finishCh = make(chan viewdata.OneStat)
+	ad.stats.SetChannels(paraToStats, ad.updateUICh, ad.finishCh)
+	ad.paragraph.SetChannels(paraToStats, ad.updateUICh)
 
 	ad.stats.IsActive = !ad.stats.IsActive
 	ad.history.IsActive = !ad.history.IsActive
@@ -75,13 +81,29 @@ func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
 	}
 	ad.controls.StartRace()
 
+	// Wait for end of race signal
+	// from ParagraphData
+	go func() {
+		for newStat := range ad.finishCh {
+			ad.history.SaveNewStat(&newStat)
+			err := ad.OnRaceFinish()
+			if err != nil {
+				log.Fatal(err)
+			}
+			return
+		}
+	}()
+
 	return nil
 }
 
 // OnRaceFinish at end of a race:
 // - when typing is finished
 // - when user stops the race
-func (ad *AppData) OnRaceFinish(g *gocui.Gui) error {
+func (ad *AppData) OnRaceFinish() error {
+	config.Logger.Info("OnRaceFinish()")
+	close(ad.finishCh)
+
 	if err := ad.paragraph.FinishRace(); err != nil {
 		return err
 	}

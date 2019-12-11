@@ -59,7 +59,7 @@ func ctrlS(g *gocui.Gui, v *gocui.View) error {
 }
 
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
-	err := app.OnRaceFinish(g)
+	err := app.OnRaceFinish()
 	AfterRaceControls(g, false)
 	return err
 }

@@ -101,6 +101,7 @@ func (pd *ParagraphData) FinishRace() error {
 		return errors.New("Race already stopped")
 	default:
 		close(pd.DoneCh())
+		pd.updateCh <- true // this tick updates after race finish
 	}
 
 	return nil

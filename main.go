@@ -38,7 +38,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	// Default key bindings on startup
+	// Setup key bindings on startup
 	defaultBindings(gui)
 	if *debug {
 		debugBindings(gui, app)

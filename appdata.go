@@ -83,16 +83,18 @@ func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
 
 	// Wait for end of race signal
 	// from ParagraphData
-	go func() {
+	go func(g *gocui.Gui) {
 		for newStat := range ad.finishCh {
 			ad.history.SaveNewStat(&newStat)
+			// Below two are similar to keybindings.ctrlE func
 			err := ad.OnRaceFinish()
+			AfterRaceControls(g, false)
 			if err != nil {
 				log.Fatal(err)
 			}
 			return
 		}
-	}()
+	}(g)
 
 	return nil
 }

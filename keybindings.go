@@ -7,17 +7,17 @@ import (
 	"github.com/jan25/termracer/config"
 )
 
-// DefaultBindings registers key bindings for default controls
-func DefaultBindings(g *gocui.Gui) {
+// defaultBindings registers key bindings for default controls
+func defaultBindings(g *gocui.Gui) {
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
 	}
 
-	AfterRaceControls(g, true)
+	afterRaceControls(g, true)
 }
 
-// DuringRaceControls registers keybindings when a race is in progress
-func DuringRaceControls(g *gocui.Gui) {
+// duringRaceControls registers keybindings for a new race
+func duringRaceControls(g *gocui.Gui) {
 	if err := g.SetKeybinding("", gocui.KeyCtrlE, gocui.ModNone, ctrlE); err != nil {
 		log.Panicln(err)
 	}
@@ -33,8 +33,8 @@ func DuringRaceControls(g *gocui.Gui) {
 	}
 }
 
-// AfterRaceControls registers keybindings when no race in progress
-func AfterRaceControls(g *gocui.Gui, isDefault bool) {
+// afterRaceControls registers keybindings at end of a race
+func afterRaceControls(g *gocui.Gui, isDefault bool) {
 	if err := g.SetKeybinding("", gocui.KeyCtrlS, gocui.ModNone, ctrlS); err != nil {
 		log.Panicln(err)
 	}
@@ -52,31 +52,29 @@ func AfterRaceControls(g *gocui.Gui, isDefault bool) {
 	}
 }
 
+// handler for race start event
 func ctrlS(g *gocui.Gui, v *gocui.View) error {
 	err := app.OnRaceStart(g)
-	DuringRaceControls(g)
+	duringRaceControls(g)
 	return err
 }
 
+// handler for race end event
 func ctrlE(g *gocui.Gui, v *gocui.View) error {
-	err := app.OnRaceFinish(g)
-	AfterRaceControls(g, false)
+	err := app.OnRaceFinish()
+	afterRaceControls(g, false)
 	return err
 }
 
+// handler for quit app event
 func quit(g *gocui.Gui, v *gocui.View) error {
 	config.Logger.Info("Quitting termracer..")
 	return gocui.ErrQuit
 }
 
-func debugBindings(g *gocui.Gui) {
-	// TODO
-	// if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, advanceWord); err != nil {
-	// 	log.Panicln(err) // FIXME This will crash the app at end of paragraph
-	// }
+// this func will list keybindings for debugging purposes only
+func debugBindings(g *gocui.Gui, ad *AppData) {
+	if err := g.SetKeybinding("", gocui.KeyArrowRight, gocui.ModNone, ad.DebugAdvance); err != nil {
+		log.Panicln(err) // FIXME This might crash the app at end of paragraph
+	}
 }
-
-// FIXME: For debugging in the UI
-// func advanceWord(g *gocui.Gui, v *gocui.View) error {
-// 	return paragraph.Advance()
-// }

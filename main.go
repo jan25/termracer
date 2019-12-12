@@ -9,18 +9,14 @@ import (
 	"github.com/jan25/termracer/db"
 )
 
-var (
-	app *AppData
-)
-
 func main() {
 	// Flags
-	debug := *flag.Bool("debug", false, "flag for debug mode")
+	debug := flag.Bool("debug", false, "flag for debug mode")
 	flag.Parse()
 
 	// Setup logger
 	var err error
-	_, err = config.InitLogger("./app.log", debug)
+	_, err = config.InitLogger(*debug)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -37,16 +33,15 @@ func main() {
 	}
 	defer gui.Close()
 
-	app, err = InitializeAppData(gui)
+	app, err = initializeAppData(gui)
 	if err != nil {
 		log.Panicln(err)
 	}
 
-	// Default key bindings on startup
-	DefaultBindings(gui)
-
-	if debug {
-		debugBindings(gui)
+	// Setup key bindings on startup
+	defaultBindings(gui)
+	if *debug {
+		debugBindings(gui, app)
 	}
 
 	config.Logger.Info("Starting main loop..")

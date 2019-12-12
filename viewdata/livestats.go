@@ -2,6 +2,7 @@ package viewdata
 
 import (
 	"errors"
+	"time"
 
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/pkg/utils"
@@ -15,7 +16,14 @@ type LiveStats struct {
 	incorrect int
 
 	// stream of messages from word editor
-	wreceiver chan StatMsg
+	preceiver chan StatMsg
+
+	// channel to update UI
+	updateCh chan bool
+
+	// used to end a race
+	// when we ran out of words to type
+	finishCh chan OneStat
 
 	// done channel
 	done chan struct{}
@@ -29,6 +37,7 @@ type LiveStats struct {
 // with wordeditor
 type StatMsg struct {
 	IsMistyped bool
+	FinishRace bool
 }
 
 // NewLiveStats creates new instance of LiveStats
@@ -43,7 +52,7 @@ func NewLiveStats() *LiveStats {
 
 // StartRace starts a new race
 func (ls *LiveStats) StartRace() error {
-	if ls.wreceiver == nil {
+	if ls.preceiver == nil {
 		return errors.New("stream channel is nil")
 	}
 
@@ -67,24 +76,34 @@ func (ls *LiveStats) TryStartTicker(g *gocui.Gui) {
 		return // do nothing
 	}
 
-	go utils.Tick(ls.timer, g)
+	go utils.Tick(ls.timer, ls.updateCh, g)
 }
 
 // SetChannels sets channels for communication
-func (ls *LiveStats) SetChannels(wreceiver chan StatMsg) {
-	ls.wreceiver = wreceiver
+func (ls *LiveStats) SetChannels(preceiver chan StatMsg, updateCh chan bool, finishCh chan OneStat) {
+	ls.preceiver = preceiver
+	ls.updateCh = updateCh
+	ls.finishCh = finishCh
 }
 
 func (ls *LiveStats) listenToWordEditor() {
-	defer close(ls.wreceiver)
+	defer close(ls.preceiver)
 
 	for {
 		select {
 		case <-ls.getDoneCh():
 			return
 		default:
-			msg := <-ls.wreceiver
-			if msg.IsMistyped {
+			msg := <-ls.preceiver
+			if msg.FinishRace {
+				wpm, _ := ls.Wpm() // FIXME: Should we care about error handling?
+				acc, _ := ls.Accuracy()
+				ls.finishCh <- OneStat{
+					Wpm:      wpm,
+					Accuracy: acc,
+					When:     time.Now(),
+				}
+			} else if msg.IsMistyped {
 				ls.incorrect++
 			} else {
 				ls.correct++

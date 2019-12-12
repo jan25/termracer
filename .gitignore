@@ -6,9 +6,3 @@ build
 
 # local samples
 **/samples
-
-# debug logs
-app.log
-
-# Local filestorage
-racehistory.csv

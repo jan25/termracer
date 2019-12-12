@@ -1,5 +1,5 @@
 // This is one-off script. Used mainly to generate samples.gz in this direcgtory
-// Fetches https://github.com/jan25/wpm/tree/master/wpm/data/samples.json.gz
+// Fetches https://github.com/jan25/wpm/tree/master/wpm/data/samples.json.gz(I copied this from some other repo)
 // and parses it into custom JSON format, creates samples.gz
 package main
 
@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Yes this is the one!")
+	fmt.Println("Starting..")
 	err := getAndSaveData()
 	if err != nil {
 		fmt.Println("Sorry, something went wrong. Here it is: \n", err)
@@ -74,21 +74,6 @@ func zip(data []byte) ([]byte, error) {
 		return nil, err
 	}
 	return b.Bytes(), nil
-}
-
-// based on https://gist.github.com/alex-ant/aeaaf497055590dacba760af24839b8d
-func unzip(data []byte) ([]byte, error) {
-	b := bytes.NewBuffer(data)
-	r, err := gzip.NewReader(b)
-	if err != nil {
-		return nil, err
-	}
-	var resB bytes.Buffer
-	_, err = resB.ReadFrom(r)
-	if err != nil {
-		return nil, err
-	}
-	return resB.Bytes(), nil
 }
 
 // Sample from github .gz file

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/db"
 )
 
@@ -16,6 +17,11 @@ type ParagraphData struct {
 	wordi int
 	// whether target word is mistyped
 	Mistyped bool
+
+	// true if a race is in progress
+	RaceInProgress bool
+	// if set the wordeditor will be cleared for next target word
+	ShouldClearEditor bool
 
 	// line count in target paragraph
 	lineCount int
@@ -30,9 +36,11 @@ type ParagraphData struct {
 	// Y position of View origin
 	Oy int
 
-	// Channels to communicate with wordeditor
-	wsender   chan WordValidateMsg
-	wreceiver chan WordValidateMsg
+	// channel to update UI
+	updateCh chan bool
+
+	// channel for sending LiveStats data
+	statsCh chan StatMsg
 
 	done chan struct{}
 }
@@ -40,38 +48,22 @@ type ParagraphData struct {
 // NewParagraphData creates instance of ParagraphData
 func NewParagraphData() *ParagraphData {
 	return &ParagraphData{
-		Words:     nil,
-		wordi:     0,
-		Mistyped:  false,
-		lineCount: 0, // FIXME
-		Line:      0,
-		Word:      0,
-		Oy:        0,
+		Words:          nil,
+		wordi:          0,
+		Mistyped:       false,
+		RaceInProgress: false,
 	}
 }
 
 // StartRace is called when a race starts
-func (pd *ParagraphData) StartRace() error {
-	if pd.wsender == nil || pd.wreceiver == nil {
-		return errors.New("wsender or wreceiver is nil")
-	}
-
-	if err := pd.setTargetParagraph(); err != nil {
-		return err
-	}
-
+func (pd *ParagraphData) StartRace(g *gocui.Gui, viewName string) {
+	pd.setTargetParagraph()
 	pd.newDoneCh()
-
-	go pd.talkWithWordEditor()
-
-	return nil
+	pd.RaceInProgress = true
 }
 
-func (pd *ParagraphData) setTargetParagraph() error {
-	para, err := db.ChooseParagraph()
-	if err != nil {
-		return err
-	}
+func (pd *ParagraphData) setTargetParagraph() {
+	para := db.ChooseParagraph()
 
 	pd.Words = strings.Fields(para)
 	for i, w := range pd.Words {
@@ -84,64 +76,95 @@ func (pd *ParagraphData) setTargetParagraph() error {
 	pd.Oy = 0
 	pd.Line = 0
 	pd.Word = 0
+}
 
-	return nil
+// SetChannels sets channels for UI, stats updates
+func (pd *ParagraphData) SetChannels(statsCh chan StatMsg, updateCh chan bool) {
+	pd.updateCh = updateCh
+	pd.statsCh = statsCh
 }
 
 // FinishRace is called to finish a race
 func (pd *ParagraphData) FinishRace() error {
 	select {
 	case <-pd.DoneCh():
-		return errors.New("race already stopped")
+		return errors.New("Race already stopped")
 	default:
 		close(pd.DoneCh())
+		pd.updateCh <- true // this tick updates after race finish
 	}
 
 	return nil
 }
 
-// SetChannels sets channels for communication
-func (pd *ParagraphData) SetChannels(wsender, wreceiver chan WordValidateMsg) {
-	pd.wsender = wsender
-	pd.wreceiver = wreceiver
-}
+// OnEditorChange is called on every change event to woreditor
+func (pd *ParagraphData) OnEditorChange(w string) {
+	endsWithSpace := strings.HasSuffix(w, " ")
+	if endsWithSpace && len(w) > 1 {
+		w = strings.TrimSuffix(w, " ")
+	}
 
-func (pd *ParagraphData) talkWithWordEditor() {
-	defer close(pd.wreceiver)
+	lastWord := false
+	if pd.wordi == len(pd.Words)-1 {
+		lastWord = true
+	}
 
-	for {
-		select {
-		case <-pd.DoneCh():
-			return
-		default:
-			msg := <-pd.wreceiver
-			pd.validateTypedWord(msg)
+	cw := pd.currentWord()
+	correct := strings.HasPrefix(cw, w)
+	pd.Mistyped = !correct
+	if (lastWord || endsWithSpace) && w == cw {
+		if pd.tryAdvanceWord() == false {
+			return // end of race
 		}
 	}
+
+	// Update UI and Stats
+	pd.updateScrollAttr()
+	pd.updateCh <- true
+	pd.statsCh <- StatMsg{
+		IsMistyped: pd.Mistyped,
+		FinishRace: false,
+	}
 }
 
-func (pd *ParagraphData) validateTypedWord(msg WordValidateMsg) {
-	s := strings.TrimSuffix(msg.CurrentTyped, " ") // trim single space in suffix
-	cw := pd.currentWord()
-
-	correct := strings.HasPrefix(s, cw)
-	newWord := (s == cw) && strings.HasSuffix(msg.CurrentTyped, " ")
-	setTyped := msg.CurrentTyped
-	if newWord {
-		setTyped = "" // resets editor
+func (pd *ParagraphData) tryAdvanceWord() bool {
+	if pd.wordi+1 == len(pd.Words) {
+		// End of race, we ran out of words to type
+		pd.statsCh <- StatMsg{
+			FinishRace: true,
+		}
+		return false
 	}
 
-	pd.wsender <- WordValidateMsg{
-		Correct:      correct,
-		IsNewWord:    newWord,
-		CurrentTyped: setTyped, // TODO remove this one and add end of race
-	}
+	pd.wordi++
+	pd.ShouldClearEditor = true
+	return true
+}
 
-	pd.Mistyped = correct
+// DebugAdvance advances by a word to debug stuff
+func (pd *ParagraphData) DebugAdvance() {
+	pd.OnEditorChange(pd.currentWord() + " ")
+}
+
+// Called after Advancing by a word
+func (pd *ParagraphData) updateScrollAttr() {
+	if pd.wordi <= 0 {
+		return
+	}
+	prevWord := pd.Words[pd.wordi-1]
+	if strings.HasSuffix(prevWord, "\n") {
+		pd.Word = 0
+		pd.Line++
+	} else {
+		pd.Word++
+	}
+	pd.makeScroll()
 }
 
 func (pd *ParagraphData) currentWord() string {
-	return pd.Words[pd.wordi]
+	w := pd.Words[pd.wordi]
+	w = strings.TrimSuffix(w, "\n") // FIXME: do we need \n at end of a word? maybe this is to print on a new line
+	return w
 }
 
 // GetCurrentIdx tells index of target word

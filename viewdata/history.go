@@ -135,7 +135,7 @@ func (s *Stats) LoadHistory() error {
 
 // ScrollDown is a keybinding
 // increments selected stat index
-func (s *Stats) ScrollDown(g *gocui.Gui, v *gocui.View) error {
+func (s *Stats) ScrollDown(_ *gocui.Gui, _ *gocui.View) error {
 	if s.Selected+1 < len(s.List) {
 		s.Selected++
 	} else {
@@ -147,7 +147,7 @@ func (s *Stats) ScrollDown(g *gocui.Gui, v *gocui.View) error {
 
 // ScrollUp is a keybinding
 // decrements selected stat index
-func (s *Stats) ScrollUp(g *gocui.Gui, v *gocui.View) error {
+func (s *Stats) ScrollUp(_ *gocui.Gui, _ *gocui.View) error {
 	if s.Selected > 0 {
 		s.Selected--
 	} else {

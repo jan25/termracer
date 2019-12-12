@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/viewdata"
 	"github.com/jan25/termracer/views"
+	"log"
 )
 
 const (
@@ -24,24 +26,28 @@ var (
 	pad        = 1
 )
 
+var app *AppData
+
 // AppData wraps all view's data structs in the app
 type AppData struct {
 	paragraph *viewdata.ParagraphData
-	editor    *viewdata.WordEditorData
 	history   *viewdata.Stats
 	stats     *viewdata.LiveStats
 	controls  *viewdata.ControlsData
+
+	updateUICh chan bool
+	finishCh   chan viewdata.OneStat
 }
 
-// InitializeAppData creates views and initialises AppData
-func InitializeAppData(g *gocui.Gui) (*AppData, error) {
+// initializeAppData creates views and initialises AppData
+func initializeAppData(g *gocui.Gui) (*AppData, error) {
 	ad := &AppData{}
 
 	para := views.NewParagraphView(paraName, topX, topY, paraW, paraH)
 	ad.paragraph = para.Data
 
 	word := views.NewWordView(wordName, topX, topY+paraH+pad, wordW, wordH)
-	ad.editor = word.Data
+	word.Data = para.Data // This Data shared between editor and paragraph views
 
 	stats, err := views.NewStatsView(statsName, topX+paraW+pad, topY, statsW, statsH)
 	if err != nil {
@@ -60,26 +66,35 @@ func InitializeAppData(g *gocui.Gui) (*AppData, error) {
 
 // OnRaceStart is called at start of a new race
 func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
-	paraToWord := make(chan viewdata.WordValidateMsg)
-	wordToPara := make(chan viewdata.WordValidateMsg)
-	wordToStats := make(chan viewdata.StatMsg)
-	ad.paragraph.SetChannels(paraToWord, wordToPara)
-	ad.editor.SetChannels(wordToPara, paraToWord, wordToStats)
-	ad.stats.SetChannels(wordToStats)
+	ad.updateUICh = make(chan bool)            // close()ed in ticker.go
+	paraToStats := make(chan viewdata.StatMsg) // close()ed in livestats.go
+	ad.finishCh = make(chan viewdata.OneStat)
+	ad.stats.SetChannels(paraToStats, ad.updateUICh, ad.finishCh)
+	ad.paragraph.SetChannels(paraToStats, ad.updateUICh)
 
 	ad.stats.IsActive = !ad.stats.IsActive
 	ad.history.IsActive = !ad.history.IsActive
 
-	if err := ad.paragraph.StartRace(); err != nil {
-		return err
-	}
-	if err := ad.editor.StartRace(g, wordName); err != nil {
-		return err
-	}
+	ad.paragraph.StartRace(g, wordName)
 	if err := ad.stats.StartRace(); err != nil {
 		return err
 	}
 	ad.controls.StartRace()
+
+	// Wait for end of race signal
+	// from ParagraphData
+	go func(g *gocui.Gui) {
+		for newStat := range ad.finishCh {
+			ad.history.SaveNewStat(&newStat)
+			// Below two are similar to keybindings.ctrlE func
+			err := ad.OnRaceFinish()
+			afterRaceControls(g, false)
+			if err != nil {
+				log.Fatal(err)
+			}
+			return
+		}
+	}(g)
 
 	return nil
 }
@@ -87,11 +102,11 @@ func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
 // OnRaceFinish at end of a race:
 // - when typing is finished
 // - when user stops the race
-func (ad *AppData) OnRaceFinish(g *gocui.Gui) error {
+func (ad *AppData) OnRaceFinish() error {
+	config.Logger.Info("OnRaceFinish()")
+	close(ad.finishCh)
+
 	if err := ad.paragraph.FinishRace(); err != nil {
-		return err
-	}
-	if err := ad.editor.FinishRace(g); err != nil {
 		return err
 	}
 	if err := ad.stats.FinishRace(); err != nil {
@@ -113,4 +128,10 @@ func (ad *AppData) HistoryScrollUp(g *gocui.Gui, v *gocui.View) error {
 // HistoryScrollDown scrolls the start history list
 func (ad *AppData) HistoryScrollDown(g *gocui.Gui, v *gocui.View) error {
 	return ad.history.ScrollDown(g, v)
+}
+
+// DebugAdvance is used to debug manually
+func (ad *AppData) DebugAdvance(g *gocui.Gui, v *gocui.View) error {
+	ad.paragraph.DebugAdvance()
+	return nil
 }

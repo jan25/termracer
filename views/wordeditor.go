@@ -2,7 +2,9 @@ package views
 
 import (
 	"github.com/jan25/gocui"
+	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/viewdata"
+	"strings"
 )
 
 // WordView is a editor widget
@@ -20,7 +22,7 @@ type WordView struct {
 	done chan struct{}
 
 	// data about contents of editor view
-	Data *viewdata.WordEditorData
+	Data *viewdata.ParagraphData
 }
 
 // NewWordView creates new instance of WordView
@@ -31,7 +33,6 @@ func NewWordView(name string, x, y int, w, h int) *WordView {
 		y:    y,
 		w:    w,
 		h:    h,
-		Data: viewdata.NewWordEditorData(),
 	}
 	wv.e = wv.newWordEditor() // This looks wierd, doesn't it?
 	return wv
@@ -48,20 +49,23 @@ func (w *WordView) Layout(g *gocui.Gui) error {
 	case <-w.Data.DoneCh():
 		// no race in progress
 		w.clearEditor(v)
+		w.deactivateEditor(g)
 	default:
-		w.initEditor(v, &w.e)
+		w.initEditor(v, &w.e, g)
 	}
 	return nil
 }
 
-func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor) {
+func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor, g *gocui.Gui) {
+	w.activateEditor(g, w.name)
 	v.Editor = *e
 	v.Editable = true
 	v.SelBgColor = gocui.ColorRed
 	v.SelFgColor = gocui.ColorCyan
 
-	if len(w.Data.CurrentTyped) == 0 {
-		w.clearEditor(v) // Reset to origin for new target word
+	if w.Data.ShouldClearEditor {
+		w.clearEditor(v)                 // Reset to origin for new target word
+		w.Data.ShouldClearEditor = false // Reset only once, this removes the deadlock on editor
 	} else {
 		w.highlight(v)
 	}
@@ -85,7 +89,7 @@ func (w *WordView) wordEditorFunc(v *gocui.View, key gocui.Key, ch rune, mod goc
 		w.handleDelete(v, true)
 	case key == gocui.KeyDelete:
 		w.handleDelete(v, false) // FIXME figure why did we write this?
-	case len(currentTyped) > viewdata.MaxWordLen:
+	case len(currentTyped) > config.MaxWordLen:
 		// do not add anymore runes
 		// can only delete from here
 	case ch != 0 && mod == 0:
@@ -115,16 +119,26 @@ func (w *WordView) handleSpace(v *gocui.View) {
 // sends message to paragraph for
 // typed word validations
 func (w *WordView) onChange(v *gocui.View) {
-	w.Data.OnChangeMsg(w.getCurrentTyped(v))
+	w.Data.OnEditorChange(w.getCurrentTyped(v))
 }
 
 // highlight for incorrectly typed word
 func (w *WordView) highlight(v *gocui.View) {
-	v.Highlight = w.Data.IsMistyped
+	v.Highlight = w.Data.Mistyped
 }
 
 // gets current word in the editor
 func (w *WordView) getCurrentTyped(v *gocui.View) string {
 	line := v.Buffer()
+	line = strings.TrimSuffix(line, "\n") // remove new line thingy at end of buffer
 	return line
+}
+
+func (w *WordView) activateEditor(g *gocui.Gui, viewName string) {
+	g.SetCurrentView(viewName)
+	g.Cursor = true
+}
+
+func (w *WordView) deactivateEditor(g *gocui.Gui) {
+	g.Cursor = false
 }

@@ -1,4 +1,4 @@
-package viewdata
+package data
 
 import (
 	"encoding/csv"

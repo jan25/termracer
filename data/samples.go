@@ -1,13 +1,19 @@
-package db
+package data
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
 
 	"github.com/jan25/termracer/config"
-	"github.com/jan25/termracer/pkg/wordwrap"
 )
+
+// Sample is a paragraph sample used for races
+type Sample struct {
+	Content string `json:"content"`
+}
 
 // ChooseParagraph calls the server to fetch a paragraph
 func ChooseParagraph() string {
@@ -15,7 +21,7 @@ func ChooseParagraph() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	samples, err := GetSamplesJSON(samplesFname)
+	samples, err := getSamplesJSON(samplesFname)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,9 +32,29 @@ func ChooseParagraph() string {
 	return p.Content
 }
 
-// GenerateLocalParagraphs checks if samples/use has paragraphs to race with
+// getSamplesJSON returns the JSON file contents
+func getSamplesJSON(fname string) ([]Sample, error) {
+	_, err := os.Stat(fname)
+	if err != nil && os.IsNotExist(err) {
+		return nil, err
+	}
+
+	bytes, err := ioutil.ReadFile(fname)
+	if err != nil {
+		return nil, err
+	}
+
+	var samples []Sample
+	if err = json.Unmarshal(bytes, &samples); err != nil {
+		return nil, err
+	}
+
+	return samples, nil
+}
+
+// generateLocalParagraphs checks if samples/use has paragraphs to race with
 // available. If not available this func tries to generate them
-func GenerateLocalParagraphs() error {
+func generateLocalParagraphs() error {
 	// TODO Add Loading... thingy before opening UI
 	samplesFname, err := config.GetSamplesFilePath()
 	if err != nil {
@@ -37,7 +63,7 @@ func GenerateLocalParagraphs() error {
 
 	_, err = os.Stat(samplesFname)
 	if err != nil && os.IsNotExist(err) {
-		err = DownloadSamplesToLocalFS(samplesFname)
+		err = downloadSamplesToLocalFS(samplesFname)
 		return err
 	}
 
@@ -45,27 +71,8 @@ func GenerateLocalParagraphs() error {
 	return nil
 }
 
-// AddNewLines adds new line char to certian words
-// to wrap and align the words into seperate lines
-func AddNewLines(words []string, width int) int {
-	processed := []wordwrap.Word{}
-	for _, w := range words {
-		processed = append(processed, wordwrap.Word{
-			Len: len(w),
-		})
-	}
-
-	wordwrap.Wrap(processed, width)
-	lines := 1
-	for i, w := range processed {
-		if w.Wrap {
-			words[i] = words[i] + "\n"
-			lines++
-		}
-	}
-	return lines
-}
-
+// TODO: This should be removed. Currently used only as a fallback
+// for failure scenarios
 const firstParagraph = `
 She sank more and more into uneasy delirium. At times she shuddered,
 turned her eyes from side to side, recognised everyone for a minute,

@@ -1,4 +1,4 @@
-package viewdata
+package data
 
 const defaultContent = `
 Ctrl+s		New race

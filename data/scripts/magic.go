@@ -1,5 +1,5 @@
 // This is one-off script. Used mainly to generate samples.gz in this direcgtory
-// Fetches https://github.com/jan25/wpm/tree/master/wpm/data/samples.json.gz(I copied this from some other repo)
+// Fetches https://github.com/jan25/wpm/blob/master/wpm/data/scripts/examples.json.gz?raw=true(I copied this from some other repo, thank them)
 // and parses it into custom JSON format, creates samples.gz
 package main
 

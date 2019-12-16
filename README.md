@@ -3,7 +3,7 @@ Practise your typing skills from within your terminal. termracer is inspired by 
 
 Your goal is to type a given paragraph as fast and accurate as possible, termracer will calculate your typing speed with words per minute and accuracy % metrics. You can also view your progress by viewing the past race results.
 
-![](https://github.com/jan25/termracer/blob/master/example.gif)
+![](https://github.com/jan25/termracer/blob/master/assets/example.gif)
 
 ## Install
 

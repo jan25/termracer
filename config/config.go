@@ -2,6 +2,7 @@ package config
 
 import "github.com/jan25/termracer/pkg/utils"
 
+// TODO: Use pkg/path from stdlib instead of strings
 const (
 	// TopLevelDir is name of directory that stores data for termracer
 	TopLevelDir = "/termracer"

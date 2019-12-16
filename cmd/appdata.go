@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log"
+	
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
-	"github.com/jan25/termracer/viewdata"
+	viewdata "github.com/jan25/termracer/views/data"
 	"github.com/jan25/termracer/views"
-	"log"
 )
 
 const (

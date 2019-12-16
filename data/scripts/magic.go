@@ -1,5 +1,5 @@
 // This is one-off script. Used mainly to generate samples.gz in this direcgtory
-// Fetches https://github.com/jan25/wpm/tree/master/wpm/data/samples.json.gz(I copied this from some other repo)
+// Fetches https://github.com/jan25/wpm/blob/master/wpm/data/scripts/examples.json.gz?raw=true(I copied this from some other repo, thank them)
 // and parses it into custom JSON format, creates samples.gz
 package main
 
@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jan25/termracer/db"
+	db "github.com/jan25/termracer/data"
 	"github.com/jan25/termracer/pkg/utils"
 )
 
@@ -25,7 +25,7 @@ func main() {
 }
 
 func getAndSaveData() error {
-	url := "https://github.com/jan25/wpm/blob/master/wpm/data/examples.json.gz?raw=true"
+	url := "https://github.com/jan25/wpm/blob/master/wpm/data/scripts/examples.json.gz?raw=true"
 	bytes, err := db.DownloadGzipFile(url)
 	if err != nil {
 		return errors.New("Failed to download gzip file. " + err.Error())

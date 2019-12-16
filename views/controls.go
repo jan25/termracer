@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jan25/gocui"
-	"github.com/jan25/termracer/viewdata"
+	viewdata "github.com/jan25/termracer/views/data"
 )
 
 // ControlsView represents static

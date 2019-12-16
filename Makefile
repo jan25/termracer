@@ -1,4 +1,5 @@
 GOCMD=go
+CMD_DIR=./cmd
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
@@ -11,16 +12,16 @@ all: test build
 
 .PHONY: build
 build:
-	$(GOBUILD) -o $(BINARY_NAME) -v
+	$(GOBUILD) -o $(BINARY_NAME) -v $(CMD_DIR)
 
 .PHONY: build-linux
 build-linux:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v $(CMD_DIR)
 
 # run all test in this project
-# ./... looks for root, subdirectories in this project
+# ./... looks at directories recursively in this project
 .PHONY: test
-test: 
+test:
 	$(GOTEST) ./... -v
 
 .PHONY: run

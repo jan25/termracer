@@ -1,11 +1,12 @@
-package viewdata
+package data
 
 import (
 	"errors"
 	"strings"
 
 	"github.com/jan25/gocui"
-	"github.com/jan25/termracer/db"
+	"github.com/jan25/termracer/pkg/wordwrap"
+	db "github.com/jan25/termracer/data"
 )
 
 // ParagraphData keeps track of state, data
@@ -70,7 +71,7 @@ func (pd *ParagraphData) setTargetParagraph() {
 		pd.Words[i] = strings.TrimSpace(w)
 	}
 
-	n := db.AddNewLines(pd.Words, pd.W-1)
+	n := addNewLines(pd.Words, pd.W-1)
 	pd.lineCount = n
 	pd.wordi = 0
 	pd.Oy = 0
@@ -203,4 +204,25 @@ func (pd *ParagraphData) makeScroll() {
 	if currLine == atLine && linesLeft >= whenLinesLeft {
 		pd.Oy++
 	}
+}
+
+// addNewLines adds new line char to certian words
+// to wrap and align the words into seperate lines
+func addNewLines(words []string, width int) int {
+	processed := []wordwrap.Word{}
+	for _, w := range words {
+		processed = append(processed, wordwrap.Word{
+			Len: len(w),
+		})
+	}
+
+	wordwrap.Wrap(processed, width)
+	lines := 1
+	for i, w := range processed {
+		if w.Wrap {
+			words[i] = words[i] + "\n"
+			lines++
+		}
+	}
+	return lines
 }

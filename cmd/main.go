@@ -6,7 +6,7 @@ import (
 
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
-	"github.com/jan25/termracer/db"
+	db "github.com/jan25/termracer/data"
 )
 
 func main() {

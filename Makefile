@@ -12,11 +12,11 @@ all: test build
 
 .PHONY: build
 build:
-	$(GOBUILD) -o $(BINARY_NAME) $(CMD_DIR) -v
+	$(GOBUILD) -o $(BINARY_NAME) -v $(CMD_DIR)
 
 .PHONY: build-linux
 build-linux:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) $(CMD_DIR) -v
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v $(CMD_DIR)
 
 # run all test in this project
 # ./... looks for root, subdirectories in this project

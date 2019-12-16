@@ -19,9 +19,9 @@ build-linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v $(CMD_DIR)
 
 # run all test in this project
-# ./... looks for root, subdirectories in this project
+# ./... looks at directories recursively in this project
 .PHONY: test
-test: 
+test:
 	$(GOTEST) ./... -v
 
 .PHONY: run

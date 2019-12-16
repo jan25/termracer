@@ -2,7 +2,7 @@
 
 # binaries from go build
 termracer
-build
+termracer_unix
 
 # local samples
 **/samples

@@ -70,12 +70,3 @@ func generateLocalParagraphs() error {
 	// We already have the file generated
 	return nil
 }
-
-// TODO: This should be removed. Currently used only as a fallback
-// for failure scenarios
-const firstParagraph = `
-She sank more and more into uneasy delirium. At times she shuddered,
-turned her eyes from side to side, recognised everyone for a minute,
-but at once sank into delirium again. Her breathing was hoarse and
-difficult, there was a sort of rattle in her throat.
-`

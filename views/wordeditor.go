@@ -1,10 +1,11 @@
 package views
 
 import (
+	"strings"
+	
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
-	"github.com/jan25/termracer/viewdata"
-	"strings"
+	viewdata "github.com/jan25/termracer/views/data"
 )
 
 // WordView is a editor widget

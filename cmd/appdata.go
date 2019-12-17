@@ -2,11 +2,11 @@ package main
 
 import (
 	"log"
-	
+
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
-	viewdata "github.com/jan25/termracer/views/data"
 	"github.com/jan25/termracer/views"
+	viewdata "github.com/jan25/termracer/views/data"
 )
 
 const (
@@ -48,6 +48,7 @@ func initializeAppData(g *gocui.Gui) (*AppData, error) {
 	ad.paragraph = para.Data
 
 	word := views.NewWordView(wordName, topX, topY+paraH+pad, wordW, wordH)
+	word.DeactivateEditor(g)
 	word.Data = para.Data // This Data shared between editor and paragraph views
 
 	stats, err := views.NewStatsView(statsName, topX+paraW+pad, topY, statsW, statsH)

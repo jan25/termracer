@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/jan25/gocui"
-	"github.com/jan25/termracer/pkg/wordwrap"
 	db "github.com/jan25/termracer/data"
+	"github.com/jan25/termracer/pkg/wordwrap"
 )
 
 // ParagraphData keeps track of state, data
@@ -92,6 +92,7 @@ func (pd *ParagraphData) FinishRace() error {
 		return errors.New("Race already stopped")
 	default:
 		close(pd.DoneCh())
+		pd.Mistyped = false
 		pd.updateCh <- true // this tick updates after race finish
 	}
 

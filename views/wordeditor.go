@@ -2,7 +2,7 @@ package views
 
 import (
 	"strings"
-	
+
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
 	viewdata "github.com/jan25/termracer/views/data"
@@ -50,7 +50,7 @@ func (w *WordView) Layout(g *gocui.Gui) error {
 	case <-w.Data.DoneCh():
 		// no race in progress
 		w.clearEditor(v)
-		w.deactivateEditor(g)
+		w.DeactivateEditor(g)
 	default:
 		w.initEditor(v, &w.e, g)
 	}
@@ -58,6 +58,7 @@ func (w *WordView) Layout(g *gocui.Gui) error {
 }
 
 func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor, g *gocui.Gui) {
+	config.Logger.Info("on startup")
 	w.activateEditor(g, w.name)
 	v.Editor = *e
 	v.Editable = true
@@ -140,6 +141,7 @@ func (w *WordView) activateEditor(g *gocui.Gui, viewName string) {
 	g.Cursor = true
 }
 
-func (w *WordView) deactivateEditor(g *gocui.Gui) {
+// DeactivateEditor deactivated editor view
+func (w *WordView) DeactivateEditor(g *gocui.Gui) {
 	g.Cursor = false
 }

@@ -47,9 +47,7 @@ func initializeAppData(g *gocui.Gui) (*AppData, error) {
 	para := views.NewParagraphView(paraName, topX, topY, paraW, paraH)
 	ad.paragraph = para.Data
 
-	word := views.NewWordView(wordName, topX, topY+paraH+pad, wordW, wordH)
-	word.DeactivateEditor(g)
-	word.Data = para.Data // This Data shared between editor and paragraph views
+	word := views.NewWordView(wordName, topX, topY+paraH+pad, wordW, wordH, para.Data)
 
 	stats, err := views.NewStatsView(statsName, topX+paraW+pad, topY, statsW, statsH)
 	if err != nil {

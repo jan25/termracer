@@ -9,6 +9,14 @@ For each race, You'll be presented a paragraph randomly picked from a predefined
 
 ## Install
 
+Without Go environment setup:
+```
+TODO
+Upload binary to release
+Add snippet to download and put it in $PATH
+```
+
+If you have Go environment setup locally:
 ```
 # download and install
 $ go get -u github.com/jan25/termracer
@@ -26,21 +34,20 @@ This application uses go modules. So, you could clone this repo under any
 directory and build/test/run. As a helper we have Makefile in this repo, which will allow to build/test/run with single
 command.
 ```
-# Builds executable
-$ make build
-
-# Runs available tests
+# Run available tests
 $ make test
 
-# Builds and runs executable
+# Build and Run executable
 $ make run
 
-# Run in debug mode
+# Build and Run in debug mode
 $ make debug
+
+# Builds executable
+$ make build
 ```
 
-## Note: The current master is in one single main package with global shared variables. So in-order to seperate concerns the project is in rewrite period, so at end of it we'll have components seperated into nicer modules/packages. Expect the finished rewrite by milestone 0.2.0-alpha scheduled on 01-12-2019 CET(May be delayed)
-
+TODO Outdated:
 The design/features are written in [NOTES.md](https://github.com/jan25/termracer/blob/master/NOTES.md).
 
 

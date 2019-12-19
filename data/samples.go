@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"time"
 
 	"github.com/jan25/termracer/config"
 )
@@ -26,7 +27,10 @@ func ChooseParagraph() string {
 		log.Fatal(err)
 	}
 
-	// FIXME rand.Seed(time.Time.Now().Unix())
+	// FIXME improve algorithm to randomise
+	// this seed gives no good random behavior
+	// noticed repeated paragraphs few times
+	rand.Seed(time.Now().Unix())
 	ri := rand.Int() % len(samples)
 	p := samples[ri]
 	return p.Content

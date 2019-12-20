@@ -64,7 +64,7 @@ func NewParagraphData() *ParagraphData {
 }
 
 // StartRace is called when a race starts
-func (pd *ParagraphData) StartRace(g *gocui.Gui, viewName string) {
+func (pd *ParagraphData) StartRace(g *gocui.Gui) {
 	pd.setTargetParagraph()
 	pd.newDoneCh()
 	pd.RaceInProgress = true

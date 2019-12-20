@@ -6,7 +6,7 @@ import (
 
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
-	db "github.com/jan25/termracer/data"
+	"github.com/jan25/termracer/data"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 	flag.Parse()
 
 	// Ensure the required data files on local FS are present
-	if err := db.EnsureDataDirs(); err != nil {
+	if err := data.EnsureDataDirs(); err != nil {
 		log.Panicln(err)
 	}
 

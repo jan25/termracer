@@ -14,7 +14,7 @@ github.com/mattn/go-runewidth
 github.com/nsf/termbox-go
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/stretchr/testify v1.3.0
+# github.com/stretchr/testify v1.4.0
 github.com/stretchr/testify/assert
 # go.uber.org/atomic v1.4.0
 go.uber.org/atomic
@@ -29,3 +29,5 @@ go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
 # golang.org/x/sys v0.0.0-20191008105621-543471e840be
 golang.org/x/sys/unix
+# gopkg.in/yaml.v2 v2.2.2
+gopkg.in/yaml.v2

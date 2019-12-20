@@ -11,7 +11,7 @@ For each race, You'll be presented a paragraph randomly picked from a predefined
 
 ```
 # download and install latest release
-$ go get -u github.com/jan25/termracer
+$ go build -o $GOPATH/bin/termracer github.com/jan25/termracer/cmd
 
 # run application
 # if $GOPATH/bin is in $PATH
@@ -43,6 +43,5 @@ The design/features are written in [NOTES.md](https://github.com/jan25/termracer
 
 
 TODO:
-3. Basic testing - clear data dirs and restart
 4. Remove any dead code
 5. Upload new demo asset

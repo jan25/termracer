@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 
-	db "github.com/jan25/termracer/data"
+	"github.com/jan25/termracer/data"
 	"github.com/jan25/termracer/pkg/utils"
 )
 
@@ -26,7 +26,7 @@ func main() {
 
 func getAndSaveData() error {
 	url := "https://github.com/jan25/wpm/blob/master/wpm/data/scripts/examples.json.gz?raw=true"
-	bytes, err := db.DownloadGzipFile(url)
+	bytes, err := data.DownloadGzipFile(url)
 	if err != nil {
 		return errors.New("Failed to download gzip file. " + err.Error())
 	}
@@ -36,9 +36,9 @@ func getAndSaveData() error {
 		return errors.New("Failed to parse unzipped bytes. " + err.Error())
 	}
 
-	samples := []db.Sample{}
+	samples := []data.Sample{}
 	for _, s := range parsed {
-		sample := db.Sample{
+		sample := data.Sample{
 			Content: s[2].(string), // Why 2? refer to sample at end of this script
 		}
 		samples = append(samples, sample)
@@ -46,7 +46,7 @@ func getAndSaveData() error {
 	return saveData(samples)
 }
 
-func saveData(data []db.Sample) error {
+func saveData(data []data.Sample) error {
 	bytes, err := json.Marshal(data)
 	if err != nil {
 		return err

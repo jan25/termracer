@@ -41,7 +41,7 @@ func EnsureDataDirs() error {
 // DownloadSamplesToLocalFS downloads and stores samples.json file locally
 func downloadSamplesToLocalFS(fname string) error {
 	url := "https://github.com/jan25/termracer/raw/master/data/scripts/samples.gz"
-	bytes, err := downloadGzipFile(url)
+	bytes, err := DownloadGzipFile(url)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func downloadSamplesToLocalFS(fname string) error {
 }
 
 // DownloadGzipFile downloads gzip file from a remote URL
-func downloadGzipFile(url string) ([]byte, error) {
+func DownloadGzipFile(url string) ([]byte, error) {
 	client := new(http.Client)
 	request, err := http.NewRequest("GET", url, nil)
 	request.Header.Add("Accept-Encoding", "gzip") // http will auto unzip

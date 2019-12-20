@@ -27,8 +27,7 @@ func ChooseParagraph() string {
 	}
 
 	ri := rand.Int() % len(samples)
-	p := samples[ri]
-	return p.Content
+	return samples[ri].Content
 }
 
 // getSamplesJSON returns the JSON file contents

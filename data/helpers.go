@@ -13,14 +13,15 @@ import (
 // EnsureDataDirs checks to see data dirs required for application are present
 // creates dirs/files if not present
 func EnsureDataDirs() error {
-	// ensure samples use directory
-	s, err := config.GetSamplesUseDir()
+	// ensure top level directory
+	tld, err := config.GetTopLevelDir()
 	if err != nil {
 		return err
 	}
-	if err := utils.CreateDirIfNotExists(s); err != nil {
+	if err := utils.CreateDirIfNotExists(tld); err != nil {
 		return err
 	}
+
 	if err := generateLocalParagraphs(); err != nil {
 		return err
 	}

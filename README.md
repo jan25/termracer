@@ -9,16 +9,8 @@ For each race, You'll be presented a paragraph randomly picked from a predefined
 
 ## Install
 
-Without Go environment setup:
 ```
-TODO
-Upload binary to release
-Add snippet to download and put it in $PATH
-```
-
-If you have Go environment setup locally:
-```
-# download and install
+# download and install latest release
 $ go get -u github.com/jan25/termracer
 
 # run application
@@ -47,12 +39,10 @@ $ make debug
 $ make build
 ```
 
-TODO Outdated:
 The design/features are written in [NOTES.md](https://github.com/jan25/termracer/blob/master/NOTES.md).
 
 
 TODO:
-1. Update README
-2. Update NOTES
 3. Basic testing - clear data dirs and restart
 4. Remove any dead code
+5. Upload new demo asset

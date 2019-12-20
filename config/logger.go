@@ -20,12 +20,11 @@ func InitLogger(debug bool) (*zap.Logger, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	cfg := zap.NewProductionConfig()
-	if err := utils.CreateFileIfNotExists(fpath); err != nil {
+	if err = utils.CreateFileIfNotExists(fpath); err != nil {
 		return nil, err
 	}
 
+	cfg := zap.NewProductionConfig()
 	cfg.OutputPaths = []string{fpath}
 	Logger, _ = cfg.Build()
 	return Logger, nil

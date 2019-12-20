@@ -2,7 +2,9 @@ package data
 
 import (
 	"errors"
+	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/jan25/gocui"
 	db "github.com/jan25/termracer/data"
@@ -48,6 +50,11 @@ type ParagraphData struct {
 
 // NewParagraphData creates instance of ParagraphData
 func NewParagraphData() *ParagraphData {
+	// FIXME improve algorithm to randomise chosen paragraph
+	// this seed gives no good random behavior
+	// noticed repeated paragraphs few times
+	rand.Seed(time.Now().Unix())
+
 	return &ParagraphData{
 		Words:          nil,
 		wordi:          0,

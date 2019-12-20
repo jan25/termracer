@@ -14,6 +14,11 @@ func main() {
 	debug := flag.Bool("debug", false, "flag for debug mode")
 	flag.Parse()
 
+	// Ensure the required data files on local FS are present
+	if err := db.EnsureDataDirs(); err != nil {
+		log.Panicln(err)
+	}
+
 	// Setup logger
 	var err error
 	_, err = config.InitLogger(*debug)
@@ -21,11 +26,6 @@ func main() {
 		log.Panicln(err)
 	}
 	defer config.Logger.Sync()
-
-	// Ensure the required data files on local FS are present
-	if err := db.EnsureDataDirs(); err != nil {
-		log.Panicln(err)
-	}
 
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {

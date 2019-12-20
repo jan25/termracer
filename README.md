@@ -10,15 +10,15 @@ For each race, You'll be presented a paragraph randomly picked from a predefined
 ## Install
 
 ```
-# download and install latest release
-$ go build -o $GOPATH/bin/termracer github.com/jan25/termracer/cmd
+# Download and install latest release
+# You could potentionally use -o flag to put the termracer binary anywhere that is included in $PATH
+    $ go build -o $GOPATH/bin/termracer github.com/jan25/termracer/cmd
 
-# run application
+# Run application
 # if $GOPATH/bin is in $PATH
-$ termracer
-
-# OR
-$ $GOPATH/bin/termracer
+    $ termracer
+# OR use
+    $ $GOPATH/bin/termracer
 ```
 
 ## Development

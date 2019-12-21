@@ -51,8 +51,6 @@ type ParagraphData struct {
 // NewParagraphData creates instance of ParagraphData
 func NewParagraphData() *ParagraphData {
 	// FIXME improve algorithm to randomise chosen paragraph
-	// this seed gives no good random behavior
-	// noticed repeated paragraphs few times
 	rand.Seed(time.Now().Unix())
 
 	return &ParagraphData{
@@ -172,7 +170,7 @@ func (pd *ParagraphData) updateScrollAttr() {
 
 func (pd *ParagraphData) currentWord() string {
 	w := pd.Words[pd.wordi]
-	w = strings.TrimSuffix(w, "\n") // FIXME: do we need \n at end of a word? maybe this is to print on a new line
+	w = strings.TrimSuffix(w, "\n")
 	return w
 }
 

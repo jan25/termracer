@@ -10,6 +10,7 @@ import (
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
 	"github.com/jan25/termracer/pkg/utils"
+	"go.uber.org/zap"
 )
 
 // OneStat represents information
@@ -17,7 +18,7 @@ import (
 type OneStat struct {
 	// words per minute
 	Wpm int
-	// accuracy eg. 95.6%
+	// accuracy. e.g., 95.6%
 	Accuracy float64
 	// time of race
 	When time.Time
@@ -29,13 +30,13 @@ type Stats struct {
 	List     []*OneStat
 	Selected int // To keep track of highlighted stat in history
 
-	IsActive bool // whether this data is active to show in stats view
+	IsActive bool // whether this data is active to show in stats view - for race history
 }
 
 // NewStatsHistory creates new Stats instance to keep track of race history
 func NewStatsHistory() (*Stats, error) {
 	s := Stats{
-		IsActive: true, // default data on app startup
+		IsActive: true,
 	}
 	if err := s.LoadHistory(); err != nil {
 		return nil, err
@@ -43,22 +44,10 @@ func NewStatsHistory() (*Stats, error) {
 	return &s, nil
 }
 
-// Just use s.IsActive directly for now
-// instead of:
-// OnStartRace called at start of new race
-// func (s *Stats) OnStartRace() {
-// 	s.IsActive = false
-// }
-// OnFinishRace called at race finish
-// func (s *Stats) OnFinishRace() {
-// 	s.IsActive = true
-// }
-
 // SaveNewStat saves current race's stat to history of stats
 func (s *Stats) SaveNewStat(stat *OneStat) error {
 	s.List = append(s.List, stat)
-	s.appendToFile(stat) // save to history file store
-	// Always selected most recent race stat on finish
+	s.appendToFile(stat)
 	s.Selected = len(s.List) - 1
 	return nil
 }
@@ -67,12 +56,8 @@ func (s *Stats) appendToFile(stat *OneStat) error {
 	line := fmt.Sprintf("%d,%f,%s", stat.Wpm, stat.Accuracy, utils.FormatDate(stat.When))
 	f, _ := config.GetHistoryFilePath()
 	if err := utils.AppendLineEOF(f, line); err != nil {
-		// FIXME add logs if needed as below
-		// Logger.Warn("Failed to append to file", zap.Error(err))
 		return err
 	}
-	// FIXME add logs if needed as below
-	// Logger.Info("Successfuly appended to file")
 	return nil
 }
 
@@ -106,14 +91,10 @@ func (s *Stats) LoadHistory() error {
 			}
 			wpm, err := strconv.Atoi(record[cmapper["wpm"]])
 			if err != nil {
-				// FIXME add a log for below case
-				// Logger.Warn("failed to read a record: " + strings.Join(record, ""))
 				continue
 			}
 			acc, err := strconv.ParseFloat(record[cmapper["acc"]], 64)
 			if err != nil {
-				// FIXME add a log for below case
-				// Logger.Warn("failed to read a record: " + strings.Join(record, ""))
 				continue
 			}
 			when, err := time.Parse("02/01/06", record[cmapper["when"]])
@@ -126,15 +107,14 @@ func (s *Stats) LoadHistory() error {
 			s.List = append(s.List, stat)
 		}
 	}
-	// FIXME add logger info if needed as below
-	// Logger.Info("Finished loading records from file", zap.Int("records", len(records)))
+	config.Logger.Info("Finished loading records from file", zap.Int("records", len(records)))
 	s.Selected = len(s.List) - 1
 
 	return nil
 }
 
-// ScrollDown is a keybinding
-// increments selected stat index
+// ScrollDown is a keybinding to scroll in race history list
+// increments selected race index
 func (s *Stats) ScrollDown(_ *gocui.Gui, _ *gocui.View) error {
 	if s.Selected+1 < len(s.List) {
 		s.Selected++

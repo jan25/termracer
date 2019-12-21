@@ -19,7 +19,6 @@ func GetHomeDir() (string, error) {
 // CreateFileIfNotExists creates file if not exists
 func CreateFileIfNotExists(fpath string) error {
 	var _, err = os.Stat(fpath)
-	// create log file if not exists
 	if err != nil && os.IsNotExist(err) {
 		file, err := os.Create(fpath)
 		if err != nil {

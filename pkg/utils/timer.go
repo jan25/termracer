@@ -6,7 +6,7 @@ import (
 )
 
 // Timer is a stopwatch like functionality
-// Doesn't use ticker, but keeps tracks of
+// Doesn't use ticking mechanism, but keeps tracks of
 // start time to figure the elapsed time
 type Timer struct {
 	start time.Time
@@ -93,7 +93,7 @@ func (t *Timer) ElapsedTime() (*TimeFormatted, error) {
 }
 
 // ElapsedTimeInSecs gives elapsed seconds
-// float because we could have 1.5sec
+// float64 because we could have 1.5sec
 func (t *Timer) ElapsedTimeInSecs() (float64, error) {
 	d, err := t.elapsedDuration()
 	if err != nil {

@@ -2,11 +2,13 @@ package data
 
 import (
 	"errors"
+	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/jan25/gocui"
-	"github.com/jan25/termracer/pkg/wordwrap"
 	db "github.com/jan25/termracer/data"
+	"github.com/jan25/termracer/pkg/wordwrap"
 )
 
 // ParagraphData keeps track of state, data
@@ -48,6 +50,9 @@ type ParagraphData struct {
 
 // NewParagraphData creates instance of ParagraphData
 func NewParagraphData() *ParagraphData {
+	// FIXME improve algorithm to randomise chosen paragraph
+	rand.Seed(time.Now().Unix())
+
 	return &ParagraphData{
 		Words:          nil,
 		wordi:          0,
@@ -57,7 +62,7 @@ func NewParagraphData() *ParagraphData {
 }
 
 // StartRace is called when a race starts
-func (pd *ParagraphData) StartRace(g *gocui.Gui, viewName string) {
+func (pd *ParagraphData) StartRace(g *gocui.Gui) {
 	pd.setTargetParagraph()
 	pd.newDoneCh()
 	pd.RaceInProgress = true
@@ -92,6 +97,7 @@ func (pd *ParagraphData) FinishRace() error {
 		return errors.New("Race already stopped")
 	default:
 		close(pd.DoneCh())
+		pd.Mistyped = false
 		pd.updateCh <- true // this tick updates after race finish
 	}
 
@@ -164,7 +170,7 @@ func (pd *ParagraphData) updateScrollAttr() {
 
 func (pd *ParagraphData) currentWord() string {
 	w := pd.Words[pd.wordi]
-	w = strings.TrimSuffix(w, "\n") // FIXME: do we need \n at end of a word? maybe this is to print on a new line
+	w = strings.TrimSuffix(w, "\n")
 	return w
 }
 

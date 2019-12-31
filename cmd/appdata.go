@@ -2,13 +2,13 @@ package main
 
 import (
 	"log"
-	
+
 	"github.com/jan25/gocui"
-	"github.com/jan25/termracer/config"
-	viewdata "github.com/jan25/termracer/views/data"
 	"github.com/jan25/termracer/views"
+	viewdata "github.com/jan25/termracer/views/data"
 )
 
+// View names
 const (
 	statsName    = "stats"
 	paraName     = "para"
@@ -16,6 +16,7 @@ const (
 	controlsName = "controls"
 )
 
+// View dimensions to setup the app UI
 var (
 	paraW, paraH = 60, 8
 	wordW, wordH = 60, 2
@@ -23,6 +24,7 @@ var (
 	statsW, statsH       = 20, 6
 	controlsW, controlsH = 20, 4
 
+	// Offsets and padding
 	topX, topY = 1, 1
 	pad        = 1
 )
@@ -42,26 +44,22 @@ type AppData struct {
 
 // initializeAppData creates views and initialises AppData
 func initializeAppData(g *gocui.Gui) (*AppData, error) {
-	ad := &AppData{}
-
 	para := views.NewParagraphView(paraName, topX, topY, paraW, paraH)
-	ad.paragraph = para.Data
-
-	word := views.NewWordView(wordName, topX, topY+paraH+pad, wordW, wordH)
-	word.Data = para.Data // This Data shared between editor and paragraph views
-
+	word := views.NewWordView(wordName, topX, topY+paraH+pad, wordW, wordH, para.Data)
 	stats, err := views.NewStatsView(statsName, topX+paraW+pad, topY, statsW, statsH)
 	if err != nil {
 		return nil, err
 	}
-	ad.stats = stats.LiveRaceData
-	ad.history = stats.HistoryData
-
 	controls := views.NewControls(controlsName, topX+paraW+pad, topY+statsH+pad, controlsW, controlsH)
-	ad.controls = controls.Data
 
 	g.SetManager(para, word, stats, controls)
 
+	ad := &AppData{
+		paragraph: para.Data,
+		stats:     stats.LiveRaceData,
+		history:   stats.HistoryData,
+		controls:  controls.Data,
+	}
 	return ad, nil
 }
 
@@ -73,10 +71,10 @@ func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
 	ad.stats.SetChannels(paraToStats, ad.updateUICh, ad.finishCh)
 	ad.paragraph.SetChannels(paraToStats, ad.updateUICh)
 
-	ad.stats.IsActive = !ad.stats.IsActive
-	ad.history.IsActive = !ad.history.IsActive
+	ad.stats.IsActive = true
+	ad.history.IsActive = false
 
-	ad.paragraph.StartRace(g, wordName)
+	ad.paragraph.StartRace(g)
 	if err := ad.stats.StartRace(); err != nil {
 		return err
 	}
@@ -104,7 +102,6 @@ func (ad *AppData) OnRaceStart(g *gocui.Gui) error {
 // - when typing is finished
 // - when user stops the race
 func (ad *AppData) OnRaceFinish() error {
-	config.Logger.Info("OnRaceFinish()")
 	close(ad.finishCh)
 
 	if err := ad.paragraph.FinishRace(); err != nil {
@@ -115,8 +112,8 @@ func (ad *AppData) OnRaceFinish() error {
 	}
 	ad.controls.DefaultControls()
 
-	ad.stats.IsActive = !ad.stats.IsActive
-	ad.history.IsActive = !ad.history.IsActive
+	ad.stats.IsActive = false
+	ad.history.IsActive = true
 
 	return nil
 }

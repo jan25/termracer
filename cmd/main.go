@@ -6,13 +6,18 @@ import (
 
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
-	db "github.com/jan25/termracer/data"
+	"github.com/jan25/termracer/data"
 )
 
 func main() {
 	// Flags
 	debug := flag.Bool("debug", false, "flag for debug mode")
 	flag.Parse()
+
+	// Ensure the required data files on local FS are present
+	if err := data.EnsureDataDirs(); err != nil {
+		log.Panicln(err)
+	}
 
 	// Setup logger
 	var err error
@@ -21,11 +26,6 @@ func main() {
 		log.Panicln(err)
 	}
 	defer config.Logger.Sync()
-
-	// Ensure the required data files on local FS are present
-	if err := db.EnsureDataDirs(); err != nil {
-		log.Panicln(err)
-	}
 
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {

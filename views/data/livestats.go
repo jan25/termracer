@@ -22,13 +22,13 @@ type LiveStats struct {
 	updateCh chan bool
 
 	// used to end a race
-	// when we ran out of words to type
+	// at end of target paragraph
 	finishCh chan OneStat
 
 	// done channel
 	done chan struct{}
 
-	IsActive bool // whether this data is active to show in stats view
+	IsActive bool // whether this data is active to show in stats view - for current race
 
 	timer *utils.Timer
 }
@@ -45,7 +45,7 @@ func NewLiveStats() *LiveStats {
 	return &LiveStats{
 		correct:   0,
 		incorrect: 0,
-		IsActive:  false, // default: no race in progress at app startup
+		IsActive:  false,
 		timer:     utils.NewTimer(),
 	}
 }
@@ -124,7 +124,6 @@ func (ls *LiveStats) FinishRace() error {
 		if err != nil {
 			return err
 		}
-		// TODO return current race stat
 	}
 
 	return nil

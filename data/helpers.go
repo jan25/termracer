@@ -13,14 +13,15 @@ import (
 // EnsureDataDirs checks to see data dirs required for application are present
 // creates dirs/files if not present
 func EnsureDataDirs() error {
-	// ensure samples use directory
-	s, err := config.GetSamplesUseDir()
+	// ensure top level directory
+	tld, err := config.GetTopLevelDir()
 	if err != nil {
 		return err
 	}
-	if err := utils.CreateDirIfNotExists(s); err != nil {
+	if err := utils.CreateDirIfNotExists(tld); err != nil {
 		return err
 	}
+
 	if err := generateLocalParagraphs(); err != nil {
 		return err
 	}
@@ -40,7 +41,7 @@ func EnsureDataDirs() error {
 // DownloadSamplesToLocalFS downloads and stores samples.json file locally
 func downloadSamplesToLocalFS(fname string) error {
 	url := "https://github.com/jan25/termracer/raw/master/data/scripts/samples.gz"
-	bytes, err := downloadGzipFile(url)
+	bytes, err := DownloadGzipFile(url)
 	if err != nil {
 		return err
 	}
@@ -51,7 +52,7 @@ func downloadSamplesToLocalFS(fname string) error {
 }
 
 // DownloadGzipFile downloads gzip file from a remote URL
-func downloadGzipFile(url string) ([]byte, error) {
+func DownloadGzipFile(url string) ([]byte, error) {
 	client := new(http.Client)
 	request, err := http.NewRequest("GET", url, nil)
 	request.Header.Add("Accept-Encoding", "gzip") // http will auto unzip

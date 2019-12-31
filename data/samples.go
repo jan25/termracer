@@ -26,10 +26,8 @@ func ChooseParagraph() string {
 		log.Fatal(err)
 	}
 
-	// FIXME rand.Seed(time.Time.Now().Unix())
 	ri := rand.Int() % len(samples)
-	p := samples[ri]
-	return p.Content
+	return samples[ri].Content
 }
 
 // getSamplesJSON returns the JSON file contents

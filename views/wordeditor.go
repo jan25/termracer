@@ -2,7 +2,7 @@ package views
 
 import (
 	"strings"
-	
+
 	"github.com/jan25/gocui"
 	"github.com/jan25/termracer/config"
 	viewdata "github.com/jan25/termracer/views/data"
@@ -27,13 +27,14 @@ type WordView struct {
 }
 
 // NewWordView creates new instance of WordView
-func NewWordView(name string, x, y int, w, h int) *WordView {
+func NewWordView(name string, x, y int, w, h int, pData *viewdata.ParagraphData) *WordView {
 	wv := &WordView{
 		name: name,
 		x:    x,
 		y:    y,
 		w:    w,
 		h:    h,
+		Data: pData,
 	}
 	wv.e = wv.newWordEditor() // This looks wierd, doesn't it?
 	return wv
@@ -58,6 +59,12 @@ func (w *WordView) Layout(g *gocui.Gui) error {
 }
 
 func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor, g *gocui.Gui) {
+	if !w.Data.RaceInProgress {
+		// this is on app startup
+		w.deactivateEditor(g)
+		return
+	}
+
 	w.activateEditor(g, w.name)
 	v.Editor = *e
 	v.Editable = true
@@ -66,7 +73,7 @@ func (w *WordView) initEditor(v *gocui.View, e *gocui.Editor, g *gocui.Gui) {
 
 	if w.Data.ShouldClearEditor {
 		w.clearEditor(v)                 // Reset to origin for new target word
-		w.Data.ShouldClearEditor = false // Reset only once, this removes the deadlock on editor
+		w.Data.ShouldClearEditor = false // Reset only once. This removes the deadlock on editor
 	} else {
 		w.highlight(v)
 	}
@@ -113,8 +120,6 @@ func (w *WordView) handleChar(v *gocui.View, ch rune) {
 func (w *WordView) handleSpace(v *gocui.View) {
 	v.EditWrite(' ') // single space
 	w.onChange(v)
-
-	// TODO figure how to finish race at end of target paragraph
 }
 
 // sends message to paragraph for
@@ -140,6 +145,7 @@ func (w *WordView) activateEditor(g *gocui.Gui, viewName string) {
 	g.Cursor = true
 }
 
+// deactivateEditor deactivated editor view
 func (w *WordView) deactivateEditor(g *gocui.Gui) {
 	g.Cursor = false
 }

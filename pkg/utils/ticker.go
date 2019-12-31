@@ -29,12 +29,11 @@ func Tick(t *Timer, forceUpdateChan chan bool, g *gocui.Gui) {
 	}
 }
 
-// UpdateUI update the UI
+// UpdateUI updates the UI
 // used when we want to manually/force update the UI
 func UpdateUI(g *gocui.Gui) {
 	g.Update(func(g *gocui.Gui) error {
 		// do nothing
-		// this automatically updates the timer in the view
 		return nil
 	})
 }

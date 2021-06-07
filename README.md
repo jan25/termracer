@@ -6,7 +6,7 @@ The Goal is to type a given paragraph as fast and accurate as possible, termrace
 
 For each race, You'll be presented a paragraph randomly picked from a predefined pool of paragraphs.
 
-![](https://github.com/jan25/termracer/blob/master/assets/demo.gif)
+![](./assets/demo.gif)
 
 ## Install
 
